@@ -22,3 +22,7 @@ Look into `config.ini`
 ## Gameplay and Controls
 
 Coming soon
+
+### Screenshot
+
+![](img/screenshot.png)
