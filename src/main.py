@@ -1,11 +1,12 @@
 import configparser
+from typing import Tuple
 
 import pygame as pg
 from pygame.time import Clock
 
 from anim import Animation
 from game import Game
-from util import Util
+from util import Util, user_quit
 
 TILES_X = 30
 TILES_Y = 30
@@ -62,10 +63,86 @@ def draw_game(screen, game: Game, dt: int):
         screen.blit(POISON_IMG, UTIL.get_xy(p))
 
     # Draw score
-    font = pg.font.SysFont('arial', int(WIDTH / 40))
-    score = 'Max length: {}'.format(game.snake.max_length_reached)
-    score_surface = font.render(score, True, pg.Color('white'))
+    score_font = pg.font.SysFont('arial', int(WIDTH / 40))
+    score_text = 'Max length: {}'.format(game.snake.max_length_reached)
+    score_surface = score_font.render(score_text, True, pg.Color('white'))
     screen.blit(score_surface, (0, 0))
+
+
+def main() -> bool:
+    # Dump first tick to ignore past
+    clock.tick(FPS)
+
+    running = True
+    while running:
+        # Get change in time
+        dt = clock.tick(FPS)
+
+        # Loop over events
+        for event in pg.event.get():
+            if user_quit(event):
+                running = False
+            elif event.type == pg.KEYDOWN:
+                if event.key in GAME_KEYS:
+                    game.press_key(event.key)
+            elif event.type == pg.KEYUP:
+                if event.key in GAME_KEYS:
+                    game.release_key(event.key)
+
+        if not game.paused:
+            # Move and draw game
+            game.move(dt)
+            if not game.game_over:
+                draw_game(screen, game, dt)
+        else:
+            screen.blit(paused_text, paused_text_rect)
+
+        # Update display
+        pg.display.update()
+
+        # Break if game no longer running
+        if game.game_over:
+            break
+
+    # False if user closed the game
+    return running
+
+
+def game_over() -> Tuple[bool, bool]:
+    running, restart = True, False
+
+    # Audio
+    pg.mixer.music.play(0)
+
+    # Fade-in game over screen
+    for i in range(255):
+        pg.event.get()  # dummy get
+        draw_game(screen, game, 0)  # draw game
+
+        # Fade-in game over screen
+        GAME_OVER_IMG.set_alpha(i)
+        screen.blit(GAME_OVER_IMG, (0, 0))
+        clock.tick(60)
+
+        # Restart button
+        screen.blit(restart_text, restart_text_rect)
+
+        # Refresh screen
+        pg.display.flip()
+
+        for event in pg.event.get():
+            if user_quit(event):
+                running = False
+                break
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if restart_text_rect.collidepoint(*event.pos):
+                    restart = True
+                    break
+        if not running or restart:
+            break
+
+    # False if user closed the game
+    return running, restart
 
 
 if __name__ == '__main__':
@@ -105,10 +182,14 @@ if __name__ == '__main__':
     clock = Clock()
 
     # Text
-    font_32 = pg.font.SysFont('arial', int(WIDTH / 20))
-    paused_text = font_32.render('PAUSED', True, pg.Color('white'))
-    paused_text_rect = paused_text.get_rect()
-    paused_text_rect.center = (WIDTH / 2, HEIGHT / 2)
+    paused_font = pg.font.SysFont('arial', int(WIDTH / 20))
+    paused_text = paused_font.render('PAUSED', True, pg.Color('white'))
+    paused_text_rect = paused_text.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+    restart_font = pg.font.SysFont('arial', int(WIDTH / 30))
+    restart_text = restart_font.render('Restart ', True, pg.Color('white'))
+    restart_text_rect = restart_text.get_rect()
+    restart_text_rect.top = HEIGHT - restart_text_rect.height
+    restart_text_rect.left = WIDTH - restart_text_rect.width
 
     # Sound
     UTIL.load_sfx('endgame.wav', as_music=True)
@@ -118,9 +199,6 @@ if __name__ == '__main__':
     pg.display.set_caption(GAME_TITLE)
     pg.display.set_icon(icon)
 
-    # Game
-    game = Game(UTIL, (TILES_X, TILES_Y))
-
     # Create screen
     screen: pg.Surface = pg.display.set_mode(
         (WIDTH, HEIGHT), pg.FULLSCREEN if FULL_SCREEN else 0)
@@ -128,63 +206,26 @@ if __name__ == '__main__':
     # Finishing touches
     GAME_OVER_IMG = GAME_OVER_IMG.convert()
 
-    # Game loop
     running = True
     while running:
-        # Get change in time
-        dt = clock.tick(FPS)
+        # Create and run game
+        game = Game(UTIL, (TILES_X, TILES_Y))
+        running = main()  # runs game loop
+        restart = False
 
-        # Loop over events
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
-            elif event.type == pg.KEYDOWN:
-                if event.key in GAME_KEYS:
-                    game.press_key(event.key)
-            elif event.type == pg.KEYUP:
-                if event.key in GAME_KEYS:
-                    game.release_key(event.key)
+        # Game over sequence (if game still running)
+        if running:
+            running, restart = game_over()
 
-        if not game.paused:
-            # Move and draw game
-            game.move(dt)
-            if not game.game_over:
-                draw_game(screen, game, dt)
-        else:
-            screen.blit(paused_text, paused_text_rect)
+        # Restart game
+        if running and restart:
+            continue
 
-        # Update display
-        pg.display.update()
-
-        # Break if game no longer running
-        if game.game_over:
-            break
-
-    # Game over sequence
-    if running:
-        # Audio
-        pg.mixer.music.play(0)
-
-        # Fade-in game over screen
-        for i in range(255):
-            pg.event.get()  # dummy get
-            draw_game(screen, game, 0)  # draw game
-
-            # Fade-in game over screen
-            GAME_OVER_IMG.set_alpha(i)
-            screen.blit(GAME_OVER_IMG, (0, 0))
-            clock.tick(60)
-            pg.display.flip()
-
+        # Wait till user quits or restarts (if game still running)
+        while running and not restart:
             for event in pg.event.get():
-                if event.type == pg.QUIT:
+                if user_quit(event):
                     running = False
-                    break
-            if not running:
-                break
-
-    # Wait till user quits
-    while running:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
+                elif event.type == pg.MOUSEBUTTONDOWN:
+                    if restart_text_rect.collidepoint(*event.pos):
+                        restart = True
