@@ -12,6 +12,13 @@ Coords = Tuple[int, int]
 CoordsList = List[Coords]
 
 
+def user_quit(event) -> bool:
+    pressed = pg.key.get_pressed()
+    alt_f4 = event.type == pg.KEYDOWN and event.key == pg.K_F4 \
+             and (pressed[pg.K_LALT] or pressed[pg.K_LALT])
+    return event.type == pg.QUIT or alt_f4
+
+
 class Direction(Enum):
     UP = 0
     DOWN = 1

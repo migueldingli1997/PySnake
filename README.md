@@ -15,6 +15,12 @@ pipenv sync
 pipenv run python src/main.py
 ```
 
+or:
+
+```bash
+bash run.sh
+```
+
 ## Configuration
 
 Look into `config.ini`
