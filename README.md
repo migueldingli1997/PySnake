@@ -34,12 +34,14 @@ An extra green skull is added for each apple consumed, whereas gray skulls are l
 - ![](img/powerups/shield/900.png) One-time-use protection against skulls
 - ![](img/powerups/ghost/900.png) Walk through skulls and yourself for 10 seconds
 - ![](img/powerups/bomb/900.png) Clear the entire field from skulls
+- ![](img/powerups/bullets/900.png) Receive 10 bullets capable of destroying skulls
 
 ### Controls
-- Set snake direction: Up/Down/Left/Right arrows
-- Boost snake speed: LShift or RSHift
-- Pause: Esc or Space
-- Quit: Alt+F4 or Click 'X'
+- Set snake direction: `Up`/`Down`/`Left`/`Right` arrows
+- Boost snake speed: `LShift` or `RSHift`
+- Fire bullets: `X`
+- Pause: `Esc` or `Space`
+- Quit: `Alt`+`F4` or close the window
 
 ### Screenshot
 ![](img/screenshot.png)
