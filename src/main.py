@@ -20,7 +20,8 @@ SFX_FOLDER = 'sfx/'
 GAME_KEYS = [
     pg.K_UP, pg.K_DOWN, pg.K_LEFT, pg.K_RIGHT,  # snake control
     pg.K_ESCAPE, pg.K_SPACE,  # pause
-    pg.K_LSHIFT, pg.K_RSHIFT  # boost
+    pg.K_LSHIFT, pg.K_RSHIFT,  # boost
+    pg.K_x  # fire bullet
 ]
 
 
@@ -48,7 +49,8 @@ def draw_game(screen, game: Game, dt: int):
 
     # Draw powerups
     PUP_ANIM.move(dt)
-    powerups = [game.pow_shield, game.pow_ghost, game.pow_bomb]
+    powerups = [game.pow_shield, game.pow_ghost,
+                game.pow_bomb, game.pow_bullets]
     for powerup, image in zip(powerups, POWERUP_IMGS):
         if powerup is not None:
             screen.blit(PUP_ANIM.get_sprite(), UTIL.get_xy(powerup))
@@ -164,6 +166,7 @@ if __name__ == '__main__':
     SHIELD_IMG = UTIL.load_img('powerups/shield/')
     GHOST_IMG = UTIL.load_img('powerups/ghost/')
     BOMB_IMG = UTIL.load_img('powerups/bomb/')
+    BULLETS_IMG = UTIL.load_img('powerups/bullets/')
     SNAKE_NORMAL_IMG = UTIL.load_img('snake/snake/')
     SNAKE_EYES_IMG = UTIL.load_img('snake/eyes/')
     SNAKE_GHOST_IMG = UTIL.load_img('snake/ghost/')
@@ -174,7 +177,7 @@ if __name__ == '__main__':
     PUP_ANIM = Animation(UTIL.load_img('powerups/marker/'), 40)
 
     # Helpers
-    POWERUP_IMGS = [SHIELD_IMG, GHOST_IMG, BOMB_IMG]
+    POWERUP_IMGS = [SHIELD_IMG, GHOST_IMG, BOMB_IMG, BULLETS_IMG]
 
     # Initialise all imported pygame modules and clock
     pg.mixer.pre_init(44100, -16, 2, 1024)

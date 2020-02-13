@@ -16,6 +16,7 @@ class Snake:
         self.last_direction_moved = self.direction
         self.is_shield_on = False
         self.ghost_ms = 0.0
+        self.bullets = 0
 
         self.coords = []
         for _ in range(STARTING_LENGTH):
@@ -46,6 +47,10 @@ class Snake:
     def is_ghost_on(self) -> bool:
         return self.ghost_ms > 0
 
+    @property
+    def has_bullets(self) -> bool:
+        return self.bullets > 0
+
     def set_direction(self, new_dir: Direction) -> bool:
         # e.g. If new direction is UP, cannot have just moved DOWN
         illegal = [
@@ -74,6 +79,12 @@ class Snake:
 
     def set_ghost(self, ghost_ms: float) -> None:
         self.ghost_ms = ghost_ms
+
+    def add_bullets(self, bullets: int) -> None:
+        self.bullets += bullets
+
+    def use_bullet(self) -> None:
+        self.bullets -= 1
 
     def move(self, dt: float):
         # New head

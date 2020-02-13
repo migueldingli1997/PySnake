@@ -11,6 +11,7 @@ BASE_SPEED = 3  # moves/sec at level 1
 ACCELERATION = 0.2  # extra moves/sec per level
 SAFE_ZONE_TILES = 999  # empty tiles in front after eating apple
 GHOST_TIMER_MS = 10000.0  # milliseconds
+NO_OF_BULLETS = 10  # initial number of bullets
 CLEAR_SKULLS_EVERY_LEVEL = False  # whether to create new skulls per level
 CLEAR_POWERUPS_IF_NOT_PICKED_UP = True  # whether to clear uncollected powerups
 
@@ -38,6 +39,7 @@ class Game:
         self.pow_shield = None
         self.pow_ghost = None
         self.pow_bomb = None
+        self.pow_bullets = None
 
         # Minus enemies (due to bomb)
         self.minus_enemies = 0
@@ -84,6 +86,9 @@ class Game:
         # Every 10n'th level for n > 1
         return self.level > 0 and self.level % 20 == 0
 
+    def should_spawn_bullets(self) -> bool:
+        return self.level % 2 == 0
+
     def press_key(self, key: int):
         if key == pg.K_UP:
             self.snake.set_direction(Direction.UP)
@@ -97,6 +102,22 @@ class Game:
             self.trigger_pause()
         elif key in [pg.K_LSHIFT, pg.K_RSHIFT]:
             self.base_speed *= 3
+        elif key == pg.K_x and self.snake.has_bullets:
+            self.snake.use_bullet()
+            front_of_snake = self.util.get_next_tile(
+                self.snake.head, self.snake.direction)
+            hit = False
+            while front_of_snake != self.snake.head and not hit:
+                for s in self.enemies + self.poisons:
+                    if s == front_of_snake:
+                        if s in self.enemies:
+                            self.enemies.remove(s)
+                        else:
+                            self.poisons.remove(s)
+                        hit = True
+                        break
+                front_of_snake = self.util.get_next_tile(
+                    front_of_snake, self.snake.direction)
 
     def release_key(self, key: int):
         if key in [pg.K_LSHIFT, pg.K_RSHIFT]:
@@ -117,7 +138,9 @@ class Game:
         for s in self.snake:
             taken[s[0]][s[1]] = True
         if not CLEAR_POWERUPS_IF_NOT_PICKED_UP:
-            for powerup in [self.pow_shield, self.pow_ghost, self.pow_bomb]:
+            for powerup in [self.pow_shield, self.pow_ghost,
+                            self.pow_bomb, self.pow_bullets]:
+                # Set to taken if powerup is not none
                 taken[powerup[0]][powerup[1]] = powerup is not None
         if not CLEAR_SKULLS_EVERY_LEVEL:
             for e in self.enemies:
@@ -127,7 +150,8 @@ class Game:
 
         # Clear previous objects
         if CLEAR_POWERUPS_IF_NOT_PICKED_UP:
-            self.pow_shield = self.pow_ghost = self.pow_bomb = None
+            self.pow_shield = self.pow_ghost = \
+                self.pow_bomb = self.pow_bullets = None
         if CLEAR_SKULLS_EVERY_LEVEL:
             self.enemies.clear()
             self.poisons.clear()
@@ -146,6 +170,10 @@ class Game:
         # New bomb powerup
         if self.should_spawn_bomb():
             self.pow_bomb = self.get_free_tile(taken)
+
+        # New bullets powerup
+        if self.should_spawn_bullets():
+            self.pow_bullets = self.get_free_tile(taken)
 
         # Mark front of snake taken to avoid immediately hitting enemies/poison
         to_mark = self.snake.head
@@ -189,6 +217,10 @@ class Game:
             self.enemies.clear()
             self.poisons.clear()
             self.pow_shield = self.pow_ghost = self.pow_bomb = None
+            self.sfx_powerup.play()
+        elif head == self.pow_bullets:
+            self.snake.add_bullets(NO_OF_BULLETS)
+            self.pow_bullets = None
             self.sfx_powerup.play()
 
         # Check if hit enemy
