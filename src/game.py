@@ -11,7 +11,7 @@ BASE_SPEED = 3  # moves/sec at level 1
 ACCELERATION = 0.2  # extra moves/sec per level
 SAFE_ZONE_TILES = 999  # empty tiles in front after eating apple
 GHOST_TIMER_MS = 10000.0  # milliseconds
-NO_OF_BULLETS = 10  # initial number of bullets
+INIT_NO_OF_BULLETS = 10  # initial number of bullets
 CLEAR_SKULLS_EVERY_LEVEL = False  # whether to create new skulls per level
 CLEAR_POWERUPS_IF_NOT_PICKED_UP = True  # whether to clear uncollected powerups
 
@@ -106,18 +106,18 @@ class Game:
             self.snake.use_bullet()
             front_of_snake = self.util.get_next_tile(
                 self.snake.head, self.snake.direction)
-            hit = False
-            while front_of_snake != self.snake.head and not hit:
-                for s in self.enemies + self.poisons:
-                    if s == front_of_snake:
-                        if s in self.enemies:
-                            self.enemies.remove(s)
-                        else:
-                            self.poisons.remove(s)
-                        hit = True
-                        break
-                front_of_snake = self.util.get_next_tile(
-                    front_of_snake, self.snake.direction)
+            while front_of_snake != self.snake.head:
+                if front_of_snake in self.enemies:
+                    self.enemies.remove(front_of_snake)
+                    self.minus_enemies += 1
+                    break
+                elif front_of_snake in self.poisons:
+                    self.poisons.remove(front_of_snake)
+                    self.minus_poisons += 1
+                    break
+                else:
+                    front_of_snake = self.util.get_next_tile(
+                        front_of_snake, self.snake.direction)
 
     def release_key(self, key: int):
         if key in [pg.K_LSHIFT, pg.K_RSHIFT]:
@@ -219,7 +219,7 @@ class Game:
             self.pow_shield = self.pow_ghost = self.pow_bomb = None
             self.sfx_powerup.play()
         elif head == self.pow_bullets:
-            self.snake.add_bullets(NO_OF_BULLETS)
+            self.snake.add_bullets(INIT_NO_OF_BULLETS)
             self.pow_bullets = None
             self.sfx_powerup.play()
 
