@@ -153,6 +153,7 @@ if __name__ == '__main__':
     cfg.read('config.ini')
     FULL_SCREEN = True if cfg['general']['full_screen'] == 'True' else False
     WIDTH = HEIGHT = int(cfg['general']['window_size'])
+    CENTER = (int(WIDTH / 2), int(HEIGHT / 2))
     FPS = int(cfg['general']['frames_per_second'])
 
     # Util class
@@ -186,7 +187,7 @@ if __name__ == '__main__':
     # Text
     paused_font = pg.font.SysFont('arial', int(WIDTH / 20))
     paused_text = paused_font.render('PAUSED', True, pg.Color('white'))
-    paused_text_rect = paused_text.get_rect(center=(WIDTH / 2, HEIGHT / 2))
+    paused_text_rect = paused_text.get_rect(center=CENTER)
     restart_font = pg.font.SysFont('arial', int(WIDTH / 30))
     restart_text = restart_font.render(' Restart ', True, pg.Color('white'))
     restart_text_rect = restart_text.get_rect()

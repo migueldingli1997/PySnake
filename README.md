@@ -1,5 +1,5 @@
 # PySnake
-The classic arcade game Snake reimagined in Python using Pygame 🐍
+The classic arcade game Snake reimagined in Python using [Pygame](https://www.pygame.org/news) 🐍
 
 ## Requirements
 Python 3 with Pipenv
