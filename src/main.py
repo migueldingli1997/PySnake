@@ -126,6 +126,8 @@ def game_over() -> Tuple[bool, bool]:
 
         # Restart button
         screen.blit(restart_text, restart_text_rect)
+        if restart_text_rect.collidepoint(pg.mouse.get_pos()):
+            pg.draw.rect(screen, pg.Color('White'), restart_text_rect, 2)
 
         # Refresh screen
         pg.display.flip()
@@ -186,7 +188,7 @@ if __name__ == '__main__':
     paused_text = paused_font.render('PAUSED', True, pg.Color('white'))
     paused_text_rect = paused_text.get_rect(center=(WIDTH / 2, HEIGHT / 2))
     restart_font = pg.font.SysFont('arial', int(WIDTH / 30))
-    restart_text = restart_font.render('Restart ', True, pg.Color('white'))
+    restart_text = restart_font.render(' Restart ', True, pg.Color('white'))
     restart_text_rect = restart_text.get_rect()
     restart_text_rect.top = HEIGHT - restart_text_rect.height
     restart_text_rect.left = WIDTH - restart_text_rect.width
