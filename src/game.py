@@ -52,6 +52,8 @@ class Game:
         self.sfx_poison = util.load_sfx('poison.wav')
         self.sfx_powerup = util.load_sfx('powerup.wav')
         self.sfx_shield_off = util.load_sfx('shield_off.wav')
+        self.sfx_bullet_hit_skull = util.load_sfx('bullet_hit_skull.wav')
+        self.sfx_bullet_hit_snake = util.load_sfx('bullet_hit_snake.wav')
 
         # Generate first apple
         self.new_objects()
@@ -252,17 +254,17 @@ class Game:
                 hits.append(b)
                 self.enemies.remove(bullet_tile)
                 self.minus_enemies += 1
-                # TODO: add sfx
+                self.sfx_bullet_hit_skull.play()
             elif bullet_tile in self.poisons:
                 hits.append(b)
                 self.poisons.remove(bullet_tile)
                 self.minus_poisons += 1
-                # TODO: add sfx
+                self.sfx_bullet_hit_skull.play()
             elif bullet_tile in self.snake.coords \
                     and bullet_tile != self.snake.head:
                 hits.append(b)
                 self.snake.shrink(1)
-                # TODO: add sfx
+                self.sfx_bullet_hit_snake.play()
 
         # Hits means bullet can be removed
         for h in hits:
