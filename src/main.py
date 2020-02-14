@@ -64,11 +64,40 @@ def draw_game(screen, game: Game, dt: int):
     for p in game.poisons:
         screen.blit(POISON_IMG, UTIL.get_xy(p))
 
+    # Draw bullets
+    for b in game.fired_bullets:
+        pg.draw.circle(screen, pg.Color('Yellow'), b.coords, 4)
+
+    font = pg.font.SysFont('arial', int(WIDTH / 40))
+    y_offset = 0
+
     # Draw score
-    score_font = pg.font.SysFont('arial', int(WIDTH / 40))
     score_text = 'Max length: {}'.format(game.snake.max_length_reached)
-    score_surface = score_font.render(score_text, True, pg.Color('white'))
-    screen.blit(score_surface, (0, 0))
+    score_surface = font.render(score_text, True, pg.Color('white'))
+    screen.blit(score_surface, (0, y_offset))
+    y_offset += score_surface.get_size()[1]
+
+    # Draw bullets indicator
+    if game.snake.bullets > 0:
+        bullets_text = 'Bullets: {}'.format(game.snake.bullets)
+        bullets_surface = font.render(bullets_text, True, pg.Color('white'))
+        screen.blit(bullets_surface, (0, y_offset))
+        y_offset += bullets_surface.get_size()[1]
+
+    # Draw ghost indicator
+    if game.snake.ghost_ms > 0:
+        ghost_seconds = game.snake.ghost_ms / 1000
+        ghost_text = 'Ghost: {:.1f}'.format(ghost_seconds)
+        ghost_surface = font.render(ghost_text, True, pg.Color('white'))
+        screen.blit(ghost_surface, (0, y_offset))
+        y_offset += ghost_surface.get_size()[1]
+
+    # Draw shield indicator
+    if game.snake.is_shield_on:
+        shield_text = 'Shield: ON'
+        shield_surface = font.render(shield_text, True, pg.Color('white'))
+        screen.blit(shield_surface, (0, y_offset))
+        y_offset += shield_surface.get_size()[1]
 
 
 def main() -> bool:

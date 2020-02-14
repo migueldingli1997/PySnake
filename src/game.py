@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pygame as pg
 
+from bullet import Bullet
 from snake import Snake
 from util import Size2D, Direction, Util, Coords
 
@@ -40,6 +41,7 @@ class Game:
         self.pow_ghost = None
         self.pow_bomb = None
         self.pow_bullets = None
+        self.fired_bullets = []
 
         # Minus enemies (due to bomb)
         self.minus_enemies = 0
@@ -104,20 +106,9 @@ class Game:
             self.base_speed *= 3
         elif key == pg.K_x and self.snake.has_bullets:
             self.snake.use_bullet()
-            front_of_snake = self.util.get_next_tile(
-                self.snake.head, self.snake.direction)
-            while front_of_snake != self.snake.head:
-                if front_of_snake in self.enemies:
-                    self.enemies.remove(front_of_snake)
-                    self.minus_enemies += 1
-                    break
-                elif front_of_snake in self.poisons:
-                    self.poisons.remove(front_of_snake)
-                    self.minus_poisons += 1
-                    break
-                else:
-                    front_of_snake = self.util.get_next_tile(
-                        front_of_snake, self.snake.direction)
+            self.fired_bullets.append(
+                Bullet(self.util.get_xy_center(self.snake.head),
+                       self.snake.last_direction_moved, self.util))
 
     def release_key(self, key: int):
         if key in [pg.K_LSHIFT, pg.K_RSHIFT]:
@@ -193,7 +184,7 @@ class Game:
         while len(self.poisons) > int(self.no_of_poisons):
             self.poisons = self.poisons[:-1]
 
-    def check_hits(self):
+    def check_snake_hits(self):
         # Check if hit itself, apple, power-ups
         head = self.snake.head
         if head in self.snake.tail and not self.snake.is_ghost_on:
@@ -251,20 +242,51 @@ class Game:
             except StopIteration:
                 pass
 
+    def check_bullet_hits(self):
+        hits = []
+        for b in self.fired_bullets:
+            bullet_tile = self.util.get_xy_tile(b.coords)
+            if bullet_tile in self.enemies:
+                hits.append(b)
+                self.enemies.remove(bullet_tile)
+                self.minus_enemies += 1
+                break
+            elif bullet_tile in self.poisons:
+                hits.append(b)
+                self.poisons.remove(bullet_tile)
+                self.minus_poisons += 1
+                break
+
+        for h in hits:
+            print("Removed hit at {}".format(h.coords))
+            self.fired_bullets.remove(h)
+
     def move(self, dt: int):
         self.time_ms += dt
 
-        # Return if not enough time elapsed for at least one move
-        if self.time_ms < self.ms_per_move:
-            return
+        # Move snake if enough time elapsed for at least one move
+        if self.time_ms >= self.ms_per_move:
+            # FPS-independent moves (loop just in case game needs to catch up)
+            while self.time_ms > self.ms_per_move:
+                # Single move consumes single time chunk
+                self.time_ms -= self.ms_per_move
 
-        # FPS-independent moves (loop just in case game needs to catch up)
-        while self.time_ms > self.ms_per_move:
-            # Single move consumes single time chunk
-            self.time_ms -= self.ms_per_move
+                # Move snake
+                self.snake.move(self.ms_per_move)
 
-            # Move snake
-            self.snake.move(self.ms_per_move)
+            # Check if snake hit something
+            self.check_snake_hits()
 
-        # Check if hit something
-        self.check_hits()
+        # Remove bullets if out of screen
+        bullets_to_remove = [b for b in self.fired_bullets
+                             if self.util.is_xy_out_of_screen(b.coords)]
+        for b in bullets_to_remove:
+            print("Removed bullet at {}".format(b.coords))
+            self.fired_bullets.remove(b)
+
+        # Move bullets
+        for b in self.fired_bullets:
+            b.move(dt)
+
+        # Check if bullets hit something
+        self.check_bullet_hits()
