@@ -263,8 +263,12 @@ class Game:
             elif bullet_tile in self.snake.coords \
                     and bullet_tile != self.snake.head:
                 hits.append(b)
-                self.snake.shrink(1)
-                self.sfx_bullet_hit_snake.play()
+                if self.snake.is_shield_on:
+                    self.snake.set_shield(False)
+                    self.sfx_shield_off.play()
+                else:
+                    self.snake.shrink(1)
+                    self.sfx_bullet_hit_snake.play()
 
         # Hits means bullet can be removed
         for h in hits:
