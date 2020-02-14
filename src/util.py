@@ -26,6 +26,22 @@ class Direction(Enum):
     RIGHT = 3
 
 
+def get_next_xy(coords: Coords, direction: Direction, px: int = 1) -> Coords:
+    x = coords[0]
+    y = coords[1]
+
+    if direction == Direction.UP:
+        return x, y - px
+    elif direction == Direction.DOWN:
+        return x, y + px
+    elif direction == Direction.LEFT:
+        return x - px, y
+    elif direction == Direction.RIGHT:
+        return x + px, y
+    else:
+        raise NotImplementedError
+
+
 class Util:
 
     def __init__(self, game_size_pixels: Size2D, game_size_tiles: Size2D,
@@ -63,6 +79,19 @@ class Util:
         adjusted_x = tile[0] * self.tile_width
         adjusted_y = tile[1] * self.tile_height
         return int(adjusted_x), int(adjusted_y)
+
+    def get_xy_center(self, tile: Coords) -> Coords:
+        adjusted_x = (tile[0] * self.tile_width) + (self.tile_width / 2)
+        adjusted_y = (tile[1] * self.tile_height) + (self.tile_height / 2)
+        return int(adjusted_x), int(adjusted_y)
+
+    def is_xy_out_of_screen(self, xy: Coords) -> bool:
+        return xy[0] < 0 or xy[0] > self.width or \
+               xy[1] < 0 or xy[1] > self.height
+
+    def get_xy_tile(self, xy: Coords) -> Coords:
+        return int(xy[0] / self.tile_width), \
+               int(xy[1] / self.tile_height)
 
     def get_random_tile(self) -> Coords:
         return (random.randint(0, self.tiles_x - 1),

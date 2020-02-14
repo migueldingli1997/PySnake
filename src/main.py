@@ -20,7 +20,8 @@ SFX_FOLDER = 'sfx/'
 GAME_KEYS = [
     pg.K_UP, pg.K_DOWN, pg.K_LEFT, pg.K_RIGHT,  # snake control
     pg.K_ESCAPE, pg.K_SPACE,  # pause
-    pg.K_LSHIFT, pg.K_RSHIFT  # boost
+    pg.K_LSHIFT, pg.K_RSHIFT,  # boost
+    pg.K_x  # fire bullet
 ]
 
 
@@ -48,7 +49,8 @@ def draw_game(screen, game: Game, dt: int):
 
     # Draw powerups
     PUP_ANIM.move(dt)
-    powerups = [game.pow_shield, game.pow_ghost, game.pow_bomb]
+    powerups = [game.pow_shield, game.pow_ghost,
+                game.pow_bomb, game.pow_bullets]
     for powerup, image in zip(powerups, POWERUP_IMGS):
         if powerup is not None:
             screen.blit(PUP_ANIM.get_sprite(), UTIL.get_xy(powerup))
@@ -62,11 +64,52 @@ def draw_game(screen, game: Game, dt: int):
     for p in game.poisons:
         screen.blit(POISON_IMG, UTIL.get_xy(p))
 
-    # Draw score
-    score_font = pg.font.SysFont('arial', int(WIDTH / 40))
-    score_text = 'Max length: {}'.format(game.snake.max_length_reached)
-    score_surface = score_font.render(score_text, True, pg.Color('white'))
-    screen.blit(score_surface, (0, 0))
+    # Draw bullets
+    for b in game.fired_bullets:
+        pg.draw.circle(screen, pg.Color('Yellow'), b.coords, 4)
+
+    font = pg.font.SysFont('arial', int(WIDTH / 40))
+    y_offset = 0
+
+    # Draw current level
+    level_text = 'Current level: {}'.format(game.level)
+    level_surface = font.render(level_text, True, pg.Color('white'))
+    screen.blit(level_surface, (0, y_offset))
+    y_offset += level_surface.get_height()
+
+    # Draw current length
+    curlen_text = 'Current length: {}'.format(len(game.snake))
+    curlen_surface = font.render(curlen_text, True, pg.Color('white'))
+    screen.blit(curlen_surface, (0, y_offset))
+    y_offset += curlen_surface.get_height()
+
+    # Draw max length
+    maxlen_text = 'Max length: {}'.format(game.snake.max_length_reached)
+    maxlen_surface = font.render(maxlen_text, True, pg.Color('white'))
+    screen.blit(maxlen_surface, (0, y_offset))
+    y_offset += maxlen_surface.get_height()
+
+    # Draw bullets indicator
+    if game.snake.bullets > 0:
+        bullets_text = 'Bullets: {}'.format(game.snake.bullets)
+        bullets_surface = font.render(bullets_text, True, pg.Color('white'))
+        screen.blit(bullets_surface, (0, y_offset))
+        y_offset += bullets_surface.get_height()
+
+    # Draw ghost indicator
+    if game.snake.ghost_ms > 0:
+        ghost_seconds = game.snake.ghost_ms / 1000
+        ghost_text = 'Ghost: {:.1f}'.format(ghost_seconds)
+        ghost_surface = font.render(ghost_text, True, pg.Color('white'))
+        screen.blit(ghost_surface, (0, y_offset))
+        y_offset += ghost_surface.get_height()
+
+    # Draw shield indicator
+    if game.snake.is_shield_on:
+        shield_text = 'Shield: ON'
+        shield_surface = font.render(shield_text, True, pg.Color('white'))
+        screen.blit(shield_surface, (0, y_offset))
+        y_offset += shield_surface.get_height()
 
 
 def main() -> bool:
@@ -167,6 +210,7 @@ if __name__ == '__main__':
     SHIELD_IMG = UTIL.load_img('powerups/shield/')
     GHOST_IMG = UTIL.load_img('powerups/ghost/')
     BOMB_IMG = UTIL.load_img('powerups/bomb/')
+    BULLETS_IMG = UTIL.load_img('powerups/bullets/')
     SNAKE_NORMAL_IMG = UTIL.load_img('snake/snake/')
     SNAKE_EYES_IMG = UTIL.load_img('snake/eyes/')
     SNAKE_GHOST_IMG = UTIL.load_img('snake/ghost/')
@@ -177,7 +221,7 @@ if __name__ == '__main__':
     PUP_ANIM = Animation(UTIL.load_img('powerups/marker/'), 40)
 
     # Helpers
-    POWERUP_IMGS = [SHIELD_IMG, GHOST_IMG, BOMB_IMG]
+    POWERUP_IMGS = [SHIELD_IMG, GHOST_IMG, BOMB_IMG, BULLETS_IMG]
 
     # Initialise all imported pygame modules and clock
     pg.mixer.pre_init(44100, -16, 2, 1024)

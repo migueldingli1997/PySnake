@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pygame as pg
 
+from bullet import Bullet
 from snake import Snake
 from util import Size2D, Direction, Util, Coords
 
@@ -11,6 +12,7 @@ BASE_SPEED = 3  # moves/sec at level 1
 ACCELERATION = 0.2  # extra moves/sec per level
 SAFE_ZONE_TILES = 999  # empty tiles in front after eating apple
 GHOST_TIMER_MS = 10000.0  # milliseconds
+INIT_NO_OF_BULLETS = 10  # initial number of bullets
 CLEAR_SKULLS_EVERY_LEVEL = False  # whether to create new skulls per level
 CLEAR_POWERUPS_IF_NOT_PICKED_UP = True  # whether to clear uncollected powerups
 
@@ -38,6 +40,8 @@ class Game:
         self.pow_shield = None
         self.pow_ghost = None
         self.pow_bomb = None
+        self.pow_bullets = None
+        self.fired_bullets = []
 
         # Minus enemies (due to bomb)
         self.minus_enemies = 0
@@ -48,6 +52,8 @@ class Game:
         self.sfx_poison = util.load_sfx('poison.wav')
         self.sfx_powerup = util.load_sfx('powerup.wav')
         self.sfx_shield_off = util.load_sfx('shield_off.wav')
+        self.sfx_bullet_hit_skull = util.load_sfx('bullet_hit_skull.wav')
+        self.sfx_bullet_hit_snake = util.load_sfx('bullet_hit_snake.wav')
 
         # Generate first apple
         self.new_objects()
@@ -81,8 +87,12 @@ class Game:
                and not self.snake.is_ghost_on
 
     def should_spawn_bomb(self) -> bool:
-        # Every 10n'th level for n > 1
+        # Every 20n'th level for n >= 1
         return self.level > 0 and self.level % 20 == 0
+
+    def should_spawn_bullets(self) -> bool:
+        # Every 10n'th level for n >= 1
+        return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):
         if key == pg.K_UP:
@@ -97,6 +107,11 @@ class Game:
             self.trigger_pause()
         elif key in [pg.K_LSHIFT, pg.K_RSHIFT]:
             self.base_speed *= 3
+        elif key == pg.K_x and self.snake.has_bullets:
+            self.snake.use_bullet()
+            self.fired_bullets.append(
+                Bullet(self.util.get_xy_center(self.snake.head),
+                       self.snake.last_direction_moved, self.util))
 
     def release_key(self, key: int):
         if key in [pg.K_LSHIFT, pg.K_RSHIFT]:
@@ -117,7 +132,9 @@ class Game:
         for s in self.snake:
             taken[s[0]][s[1]] = True
         if not CLEAR_POWERUPS_IF_NOT_PICKED_UP:
-            for powerup in [self.pow_shield, self.pow_ghost, self.pow_bomb]:
+            for powerup in [self.pow_shield, self.pow_ghost,
+                            self.pow_bomb, self.pow_bullets]:
+                # Set to taken if powerup is not none
                 taken[powerup[0]][powerup[1]] = powerup is not None
         if not CLEAR_SKULLS_EVERY_LEVEL:
             for e in self.enemies:
@@ -127,7 +144,8 @@ class Game:
 
         # Clear previous objects
         if CLEAR_POWERUPS_IF_NOT_PICKED_UP:
-            self.pow_shield = self.pow_ghost = self.pow_bomb = None
+            self.pow_shield = self.pow_ghost = \
+                self.pow_bomb = self.pow_bullets = None
         if CLEAR_SKULLS_EVERY_LEVEL:
             self.enemies.clear()
             self.poisons.clear()
@@ -147,6 +165,10 @@ class Game:
         if self.should_spawn_bomb():
             self.pow_bomb = self.get_free_tile(taken)
 
+        # New bullets powerup
+        if self.should_spawn_bullets():
+            self.pow_bullets = self.get_free_tile(taken)
+
         # Mark front of snake taken to avoid immediately hitting enemies/poison
         to_mark = self.snake.head
         for i in range(SAFE_ZONE_TILES):
@@ -165,7 +187,7 @@ class Game:
         while len(self.poisons) > int(self.no_of_poisons):
             self.poisons = self.poisons[:-1]
 
-    def check_hits(self):
+    def check_snake_hits(self):
         # Check if hit itself, apple, power-ups
         head = self.snake.head
         if head in self.snake.tail and not self.snake.is_ghost_on:
@@ -189,6 +211,10 @@ class Game:
             self.enemies.clear()
             self.poisons.clear()
             self.pow_shield = self.pow_ghost = self.pow_bomb = None
+            self.sfx_powerup.play()
+        elif head == self.pow_bullets:
+            self.snake.add_bullets(INIT_NO_OF_BULLETS)
+            self.pow_bullets = None
             self.sfx_powerup.play()
 
         # Check if hit enemy
@@ -219,20 +245,60 @@ class Game:
             except StopIteration:
                 pass
 
+    def check_bullet_hits(self):
+        # Check if bullets hit an enemy, poison, or snake
+        hits = []
+        for b in self.fired_bullets:
+            bullet_tile = self.util.get_xy_tile(b.coords)
+            if bullet_tile in self.enemies:
+                hits.append(b)
+                self.enemies.remove(bullet_tile)
+                self.minus_enemies += 1
+                self.sfx_bullet_hit_skull.play()
+            elif bullet_tile in self.poisons:
+                hits.append(b)
+                self.poisons.remove(bullet_tile)
+                self.minus_poisons += 1
+                self.sfx_bullet_hit_skull.play()
+            elif bullet_tile in self.snake.coords \
+                    and bullet_tile != self.snake.head:
+                hits.append(b)
+                if self.snake.is_shield_on:
+                    self.snake.set_shield(False)
+                    self.sfx_shield_off.play()
+                else:
+                    self.snake.shrink(1)
+                    self.sfx_bullet_hit_snake.play()
+
+        # Hits means bullet can be removed
+        for h in hits:
+            self.fired_bullets.remove(h)
+
     def move(self, dt: int):
         self.time_ms += dt
 
-        # Return if not enough time elapsed for at least one move
-        if self.time_ms < self.ms_per_move:
-            return
+        # Move snake if enough time elapsed for at least one move
+        if self.time_ms >= self.ms_per_move:
+            # FPS-independent moves (loop just in case game needs to catch up)
+            while self.time_ms > self.ms_per_move:
+                # Single move consumes single time chunk
+                self.time_ms -= self.ms_per_move
 
-        # FPS-independent moves (loop just in case game needs to catch up)
-        while self.time_ms > self.ms_per_move:
-            # Single move consumes single time chunk
-            self.time_ms -= self.ms_per_move
+                # Move snake
+                self.snake.move(self.ms_per_move)
 
-            # Move snake
-            self.snake.move(self.ms_per_move)
+            # Check if snake hit something
+            self.check_snake_hits()
 
-        # Check if hit something
-        self.check_hits()
+        # Remove bullets if out of screen
+        bullets_to_remove = [b for b in self.fired_bullets
+                             if self.util.is_xy_out_of_screen(b.coords)]
+        for b in bullets_to_remove:
+            self.fired_bullets.remove(b)
+
+        # Move bullets
+        for b in self.fired_bullets:
+            b.move(dt)
+
+        # Check if bullets hit something
+        self.check_bullet_hits()

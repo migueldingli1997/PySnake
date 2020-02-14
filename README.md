@@ -27,19 +27,23 @@ The objective of the game is to eat as many apples as possible. With each apple 
 An extra green skull is added for each apple consumed, whereas gray skulls are less frequent. Powerups that are not picked up disappear if an apple is consumed! 
 
 #### Skulls
-- ![](img/skulls/enemy/900.png) Immediate game-over
-- ![](img/skulls/poison/900.png) Reduces the snake's length by one
+- ![](img/skulls/enemy/900.png) **Gray**: Immediate game-over
+- ![](img/skulls/poison/900.png) **Green**: Reduces the snake's length by one
 
 #### Powerups
-- ![](img/powerups/shield/900.png) One-time-use protection against skulls
-- ![](img/powerups/ghost/900.png) Walk through skulls and yourself for 10 seconds
-- ![](img/powerups/bomb/900.png) Clear the entire field from skulls
+- ![](img/powerups/shield/900.png) **Shield**: one-time-use protection against skulls and bullets
+- ![](img/powerups/ghost/900.png) **Ghost**: walk through skulls and yourself for 10 seconds
+- ![](img/powerups/bullets/900.png) **Bullets**: receive 10 bullets capable of destroying skulls
+- ![](img/powerups/bomb/900.png) **Bomb**: immediately clears any skull from the entire field
+
+Firing bullets at yourself has the same effect as a green skull, i.e. the snake's length is reduced by one. Similarly, if the snake is shielded, the shield gets destroyed instead of the snake shrinking.
 
 ### Controls
-- Set snake direction: Up/Down/Left/Right arrows
-- Boost snake speed: LShift or RSHift
-- Pause: Esc or Space
-- Quit: Alt+F4 or Click 'X'
+- Set snake direction: `Up`/`Down`/`Left`/`Right` arrows
+- Boost snake speed: `LShift` or `RSHift`
+- Fire bullets: `X`
+- Pause: `Esc` or `Space`
+- Quit: `Alt`+`F4` or close the window
 
 ### Screenshot
 ![](img/screenshot.png)

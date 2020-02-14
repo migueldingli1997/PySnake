@@ -3,7 +3,7 @@ from pygame.surface import Surface
 
 
 class Animation:
-    def __init__(self, sprite_sheet: Surface, fps: float):
+    def __init__(self, sprite_sheet: Surface, frames_per_second: float):
         # Sheet assumed to be horizontal
         self.size_per_sprite = sprite_sheet.get_height()
         self.no_of_sprites = sprite_sheet.get_width() / self.size_per_sprite
@@ -18,7 +18,7 @@ class Animation:
             self.sprites.append(
                 sprite_sheet.subsurface(pg.Rect(i * sps, 0, sps, sps)))
 
-        fpms = fps / 1000  # frames per ms
+        fpms = frames_per_second / 1000  # frames per ms
         self.mspf = 1 / fpms  # ms per frame
 
         self.time = 0
