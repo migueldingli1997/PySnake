@@ -85,11 +85,12 @@ class Game:
                and not self.snake.is_ghost_on
 
     def should_spawn_bomb(self) -> bool:
-        # Every 10n'th level for n > 1
+        # Every 20n'th level for n >= 1
         return self.level > 0 and self.level % 20 == 0
 
     def should_spawn_bullets(self) -> bool:
-        return self.level % 2 == 0
+        # Every 10n'th level for n >= 1
+        return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):
         if key == pg.K_UP:
@@ -243,6 +244,7 @@ class Game:
                 pass
 
     def check_bullet_hits(self):
+        # Check if bullets hit an enemy, poison, or snake
         hits = []
         for b in self.fired_bullets:
             bullet_tile = self.util.get_xy_tile(b.coords)
@@ -250,15 +252,20 @@ class Game:
                 hits.append(b)
                 self.enemies.remove(bullet_tile)
                 self.minus_enemies += 1
-                break
+                # TODO: add sfx
             elif bullet_tile in self.poisons:
                 hits.append(b)
                 self.poisons.remove(bullet_tile)
                 self.minus_poisons += 1
-                break
+                # TODO: add sfx
+            elif bullet_tile in self.snake.coords \
+                    and bullet_tile != self.snake.head:
+                hits.append(b)
+                self.snake.shrink(1)
+                # TODO: add sfx
 
+        # Hits means bullet can be removed
         for h in hits:
-            print("Removed hit at {}".format(h.coords))
             self.fired_bullets.remove(h)
 
     def move(self, dt: int):
@@ -281,7 +288,6 @@ class Game:
         bullets_to_remove = [b for b in self.fired_bullets
                              if self.util.is_xy_out_of_screen(b.coords)]
         for b in bullets_to_remove:
-            print("Removed bullet at {}".format(b.coords))
             self.fired_bullets.remove(b)
 
         # Move bullets

@@ -71,18 +71,30 @@ def draw_game(screen, game: Game, dt: int):
     font = pg.font.SysFont('arial', int(WIDTH / 40))
     y_offset = 0
 
-    # Draw score
-    score_text = 'Max length: {}'.format(game.snake.max_length_reached)
-    score_surface = font.render(score_text, True, pg.Color('white'))
-    screen.blit(score_surface, (0, y_offset))
-    y_offset += score_surface.get_size()[1]
+    # Draw current level
+    level_text = 'Current level: {}'.format(game.level)
+    level_surface = font.render(level_text, True, pg.Color('white'))
+    screen.blit(level_surface, (0, y_offset))
+    y_offset += level_surface.get_height()
+
+    # Draw current length
+    curlen_text = 'Current length: {}'.format(len(game.snake))
+    curlen_surface = font.render(curlen_text, True, pg.Color('white'))
+    screen.blit(curlen_surface, (0, y_offset))
+    y_offset += curlen_surface.get_height()
+
+    # Draw max length
+    maxlen_text = 'Max length: {}'.format(game.snake.max_length_reached)
+    maxlen_surface = font.render(maxlen_text, True, pg.Color('white'))
+    screen.blit(maxlen_surface, (0, y_offset))
+    y_offset += maxlen_surface.get_height()
 
     # Draw bullets indicator
     if game.snake.bullets > 0:
         bullets_text = 'Bullets: {}'.format(game.snake.bullets)
         bullets_surface = font.render(bullets_text, True, pg.Color('white'))
         screen.blit(bullets_surface, (0, y_offset))
-        y_offset += bullets_surface.get_size()[1]
+        y_offset += bullets_surface.get_height()
 
     # Draw ghost indicator
     if game.snake.ghost_ms > 0:
@@ -90,14 +102,14 @@ def draw_game(screen, game: Game, dt: int):
         ghost_text = 'Ghost: {:.1f}'.format(ghost_seconds)
         ghost_surface = font.render(ghost_text, True, pg.Color('white'))
         screen.blit(ghost_surface, (0, y_offset))
-        y_offset += ghost_surface.get_size()[1]
+        y_offset += ghost_surface.get_height()
 
     # Draw shield indicator
     if game.snake.is_shield_on:
         shield_text = 'Shield: ON'
         shield_surface = font.render(shield_text, True, pg.Color('white'))
         screen.blit(shield_surface, (0, y_offset))
-        y_offset += shield_surface.get_size()[1]
+        y_offset += shield_surface.get_height()
 
 
 def main() -> bool:
