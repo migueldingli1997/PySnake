@@ -6,7 +6,7 @@ from pygame.time import Clock
 from anim import Animation
 from game import Game
 from helpers.config import Config
-from helpers.util import Util, user_quit
+from helpers.util import Util, user_quit, rotate_image
 
 TILES_X = 30
 TILES_Y = 30
@@ -30,7 +30,7 @@ def draw_game(screen, game: Game, dt: int):
         screen.blit(snake_img, UTIL.get_xy(s))
     if game.snake.head is not None:
         screen.blit(
-            UTIL.rotate_image(SNAKE_EYES_IMG, game.snake.last_direction_moved),
+            rotate_image(SNAKE_EYES_IMG, game.snake.last_direction_moved),
             UTIL.get_xy(game.snake.head))
 
     # Draw shield on top of snake if has shield on
