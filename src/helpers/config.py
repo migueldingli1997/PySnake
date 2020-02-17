@@ -1,12 +1,12 @@
 from configparser import ConfigParser
 from typing import List
 
-CONFIG_FILE = 'config.ini'
 VALID_WINDOW_SIZES = [1080, 900, 750, 600, 300]
 
 
 class Config:
-    def __init__(self):
+    def __init__(self, config_file: str):
+        self.config_file = config_file
         self.cp = None
 
     @classmethod
@@ -15,12 +15,14 @@ class Config:
 
     def read(self):
         self.cp = ConfigParser()
-        self.cp.read(CONFIG_FILE)
+        self.cp.read(self.config_file)
 
-        general = self.cp['general']
-        self.full_screen = general['full_screen'].lower() in ['true', 'yes']
-        self.frames_per_second = int(general['frames_per_second'])
-        self.window_size = int(general['window_size'])
+        video = self.cp['video']
+        self.full_screen = video['full_screen'].lower() in ['true', 'yes']
+        self.frames_per_second = int(video['frames_per_second'])
+        self.window_size = self.height_px = self.width_px = \
+            int(video['window_size'])
+        self.center_px = int(self.width_px / 2), int(self.height_px / 2)
 
         if self.window_size not in VALID_WINDOW_SIZES:
             raise Exception('Invalid window size; Valid sizes: {}'
@@ -45,9 +47,5 @@ class Config:
         if self.cp is None:
             raise Exception('Tried to save None config')
 
-        with open(CONFIG_FILE, 'r') as fp:
+        with open(self.config_file, 'r') as fp:
             self.cp = ConfigParser().write(fp)
-
-
-CFG = Config()
-CFG.read()

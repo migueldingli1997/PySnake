@@ -2,10 +2,10 @@ import random
 
 import numpy as np
 
-from bullet import Bullet
-from config import CFG
+from helpers.config import Config
+from helpers.util import Size2D, Direction, Util, Coords
+from projectile import Bullet
 from snake import Snake
-from util import Size2D, Direction, Util, Coords
 
 STARTING_LEVEL = 1  # starting level
 BASE_SPEED = 3  # moves/sec at level 1
@@ -18,9 +18,9 @@ CLEAR_POWERUPS_IF_NOT_PICKED_UP = True  # whether to clear uncollected powerups
 
 
 class Game:
-    def __init__(self, util: Util, game_size_tiles: Size2D):
-        # Util
+    def __init__(self, util: Util, cfg: Config, game_size_tiles: Size2D):
         self.util = util
+        self.cfg = cfg
 
         # Game
         self.game_size_tiles = game_size_tiles
@@ -95,26 +95,26 @@ class Game:
         return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):
-        if key in CFG.ctrl_up:
+        if key in self.cfg.ctrl_up:
             self.snake.set_direction(Direction.UP)
-        elif key in CFG.ctrl_down:
+        elif key in self.cfg.ctrl_down:
             self.snake.set_direction(Direction.DOWN)
-        elif key in CFG.ctrl_left:
+        elif key in self.cfg.ctrl_left:
             self.snake.set_direction(Direction.LEFT)
-        elif key in CFG.ctrl_right:
+        elif key in self.cfg.ctrl_right:
             self.snake.set_direction(Direction.RIGHT)
-        elif key in CFG.ctrl_pause:
+        elif key in self.cfg.ctrl_pause:
             self.trigger_pause()
-        elif key in CFG.ctrl_boost:
+        elif key in self.cfg.ctrl_boost:
             self.base_speed *= 3
-        elif key in CFG.ctrl_shoot and self.snake.has_bullets:
+        elif key in self.cfg.ctrl_shoot and self.snake.has_bullets:
             self.snake.use_bullet()
             self.fired_bullets.append(
                 Bullet(self.util.get_xy_center(self.snake.head),
                        self.snake.last_direction_moved, self.util))
 
     def release_key(self, key: int):
-        if key in CFG.ctrl_boost:
+        if key in self.cfg.ctrl_boost:
             self.base_speed /= 3
 
     def trigger_pause(self):

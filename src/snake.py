@@ -1,6 +1,6 @@
 from typing import Optional, Iterator
 
-from util import Direction, Coords, CoordsList, Size2D, Util
+from helpers.util import Direction, Coords, CoordsList, Size2D, Util
 
 STARTING_LENGTH = 3  # Starting length
 

@@ -1,13 +1,12 @@
-import configparser
 from typing import Tuple
 
 import pygame as pg
 from pygame.time import Clock
 
 from anim import Animation
-from config import CFG
 from game import Game
-from util import Util, user_quit
+from helpers.config import Config
+from helpers.util import Util, user_quit
 
 TILES_X = 30
 TILES_Y = 30
@@ -16,6 +15,9 @@ GAME_TITLE = 'PySnake'
 GAME_ICON = 'img/icon.png'
 IMG_FOLDER = 'img/'
 SFX_FOLDER = 'sfx/'
+
+CFG = Config('config.ini')
+CFG.read()
 
 
 def draw_game(screen, game: Game, dt: int):
@@ -61,7 +63,7 @@ def draw_game(screen, game: Game, dt: int):
     for b in game.fired_bullets:
         pg.draw.circle(screen, pg.Color('Yellow'), b.coords, 4)
 
-    font = pg.font.SysFont('arial', int(WIDTH / 40))
+    font = pg.font.SysFont('arial', int(CFG.width_px / 40))
     y_offset = 0
 
     # Draw current level
@@ -105,45 +107,6 @@ def draw_game(screen, game: Game, dt: int):
         y_offset += shield_surface.get_height()
 
 
-def main() -> bool:
-    # Dump first tick to ignore past
-    clock.tick(FPS)
-
-    running = True
-    while running:
-        # Get change in time
-        dt = clock.tick(FPS)
-
-        # Loop over events
-        for event in pg.event.get():
-            if user_quit(event):
-                running = False
-            elif event.type == pg.KEYDOWN:
-                if event.key in CFG.all_keys:
-                    game.press_key(event.key)
-            elif event.type == pg.KEYUP:
-                if event.key in CFG.all_keys:
-                    game.release_key(event.key)
-
-        if not game.paused:
-            # Move and draw game
-            game.move(dt)
-            if not game.game_over:
-                draw_game(screen, game, dt)
-        else:
-            screen.blit(paused_text, paused_text_rect)
-
-        # Update display
-        pg.display.update()
-
-        # Break if game no longer running
-        if game.game_over:
-            break
-
-    # False if user closed the game
-    return running
-
-
 def game_over() -> Tuple[bool, bool]:
     running, restart = True, False
 
@@ -183,17 +146,49 @@ def game_over() -> Tuple[bool, bool]:
     return running, restart
 
 
-if __name__ == '__main__':
-    # Read config
-    cfg = configparser.ConfigParser()
-    cfg.read('config.ini')
-    FULL_SCREEN = True if cfg['general']['full_screen'] == 'True' else False
-    WIDTH = HEIGHT = int(cfg['general']['window_size'])
-    CENTER = (int(WIDTH / 2), int(HEIGHT / 2))
-    FPS = int(cfg['general']['frames_per_second'])
+def main() -> bool:
+    # Dump first tick to ignore past
+    clock.tick(CFG.frames_per_second)
 
+    running = True
+    while running:
+        # Get change in time
+        dt = clock.tick(CFG.frames_per_second)
+
+        # Loop over events
+        for event in pg.event.get():
+            if user_quit(event):
+                running = False
+            elif event.type == pg.KEYDOWN:
+                if event.key in CFG.all_keys:
+                    game.press_key(event.key)
+            elif event.type == pg.KEYUP:
+                if event.key in CFG.all_keys:
+                    game.release_key(event.key)
+
+        if not game.paused:
+            # Move and draw game
+            game.move(dt)
+            if not game.game_over:
+                draw_game(screen, game, dt)
+        else:
+            screen.blit(paused_text, paused_text_rect)
+
+        # Update display
+        pg.display.update()
+
+        # Break if game no longer running
+        if game.game_over:
+            break
+
+    # False if user closed the game
+    return running
+
+
+if __name__ == '__main__':
     # Util class
-    UTIL = Util((WIDTH, HEIGHT), (TILES_X, TILES_Y), IMG_FOLDER, SFX_FOLDER)
+    UTIL = Util((CFG.width_px, CFG.height_px), (TILES_X, TILES_Y),
+                IMG_FOLDER, SFX_FOLDER)
 
     # Images
     APPLE_IMG = UTIL.load_img('apple/')
@@ -222,14 +217,14 @@ if __name__ == '__main__':
     clock = Clock()
 
     # Text
-    paused_font = pg.font.SysFont('arial', int(WIDTH / 20))
+    paused_font = pg.font.SysFont('arial', int(CFG.width_px / 20))
     paused_text = paused_font.render('PAUSED', True, pg.Color('white'))
-    paused_text_rect = paused_text.get_rect(center=CENTER)
-    restart_font = pg.font.SysFont('arial', int(WIDTH / 30))
+    paused_text_rect = paused_text.get_rect(center=CFG.center_px)
+    restart_font = pg.font.SysFont('arial', int(CFG.width_px / 30))
     restart_text = restart_font.render(' Restart ', True, pg.Color('white'))
     restart_text_rect = restart_text.get_rect()
-    restart_text_rect.top = HEIGHT - restart_text_rect.height
-    restart_text_rect.left = WIDTH - restart_text_rect.width
+    restart_text_rect.top = CFG.height_px - restart_text_rect.height
+    restart_text_rect.left = CFG.width_px - restart_text_rect.width
 
     # Sound
     UTIL.load_sfx('endgame.wav', as_music=True)
@@ -241,7 +236,7 @@ if __name__ == '__main__':
 
     # Create screen
     screen: pg.Surface = pg.display.set_mode(
-        (WIDTH, HEIGHT), pg.FULLSCREEN if FULL_SCREEN else 0)
+        (CFG.width_px, CFG.height_px), pg.FULLSCREEN if CFG.full_screen else 0)
 
     # Finishing touches
     GAME_OVER_IMG = GAME_OVER_IMG.convert()
@@ -249,7 +244,7 @@ if __name__ == '__main__':
     running = True
     while running:
         # Create and run game
-        game = Game(UTIL, (TILES_X, TILES_Y))
+        game = Game(UTIL, CFG, (TILES_X, TILES_Y))
         running = main()  # runs game loop
         restart = False
 
