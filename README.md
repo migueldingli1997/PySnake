@@ -58,7 +58,9 @@ or:
 bash run_reconfig_controls.sh
 ```
 
-Pay special attention to the console. For each control, you may either keep the current button/s by pressing ESCAPE, or input a new list with at least one button by pressing the button/s one by one and pressing ENTER at the end to submit the list.
+Pay special attention to the console output (stdout) as it will guide you through the reconfiguration process. For each control, you may either keep the current button/s by pressing ESCAPE, or input a new list with at least one button by pressing the button/s one by one and pressing ENTER at the end to submit the list.
+
+If something goes wrong with the reconfiguration, a `config_default.ini` file is included and can be used to replace a bad `config.ini`. 
 
 ### Screenshot
 ![](img/screenshot.png)
