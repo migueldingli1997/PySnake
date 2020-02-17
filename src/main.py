@@ -111,7 +111,7 @@ def game_over() -> Tuple[bool, bool]:
     running, restart = True, False
 
     # Audio
-    pg.mixer.music.play(0)
+    GAME_OVER_SFX.play()
 
     # Fade-in game over screen
     for i in range(255):
@@ -216,6 +216,9 @@ if __name__ == '__main__':
     pg.init()
     clock = Clock()
 
+    # SFX
+    GAME_OVER_SFX = UTIL.load_sfx('endgame.wav')
+
     # Text
     paused_font = pg.font.SysFont('arial', int(CFG.width_px / 20))
     paused_text = paused_font.render('PAUSED', True, pg.Color('white'))
@@ -225,9 +228,6 @@ if __name__ == '__main__':
     restart_text_rect = restart_text.get_rect()
     restart_text_rect.top = CFG.height_px - restart_text_rect.height
     restart_text_rect.left = CFG.width_px - restart_text_rect.width
-
-    # Sound
-    UTIL.load_sfx('endgame.wav', as_music=True)
 
     # Title and icon
     icon = pg.image.load(GAME_ICON)
