@@ -1,11 +1,12 @@
 import random
-from enum import Enum
 from typing import List, Tuple, Optional
 
 import numpy as np
 import pygame as pg
 from pygame.mixer import Sound
 from pygame.surface import Surface
+
+from helpers.direction import Direction, direction_to_angle
 
 Size2D = Tuple[int, int]
 Coords = Tuple[int, int]
@@ -17,13 +18,6 @@ def user_quit(event) -> bool:
     alt_f4 = event.type == pg.KEYDOWN and event.key == pg.K_F4 \
              and (pressed[pg.K_LALT] or pressed[pg.K_LALT])
     return event.type == pg.QUIT or alt_f4
-
-
-class Direction(Enum):
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
 
 
 def get_next_xy(coords: Coords, direction: Direction, px: int = 1) -> Coords:
@@ -40,6 +34,11 @@ def get_next_xy(coords: Coords, direction: Direction, px: int = 1) -> Coords:
         return x + px, y
     else:
         raise NotImplementedError
+
+
+def rotate_image(image: Surface, direction: Direction) -> Surface:
+    # Zero-rotation direction assumed to be UP
+    return pg.transform.rotate(image, direction_to_angle(direction))
 
 
 class Util:
@@ -102,18 +101,6 @@ class Util:
             tile = self.get_random_tile()
             if not taken[tile[0]][tile[1]]:
                 return tile
-
-    def dir_to_ang(self, dir: Direction) -> int:
-        return {
-            Direction.UP: 0,
-            Direction.LEFT: 90,
-            Direction.DOWN: 180,
-            Direction.RIGHT: 270,
-        }[dir]
-
-    def rotate_image(self, image: Surface, direction: Direction) -> Surface:
-        # Zero-rotation direction assumed to be UP
-        return pg.transform.rotate(image, self.dir_to_ang(direction))
 
     def get_next_tile(self, coords: Coords, direction: Direction) -> Coords:
         x = coords[0]

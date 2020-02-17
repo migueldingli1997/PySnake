@@ -1,15 +1,16 @@
-from util import Coords, Direction, get_next_xy, Util
+from helpers.util import Coords, Direction, get_next_xy, Util
 
 BULLET_TILES_PER_SECOND = 30
 
 
-class Bullet:
+class Projectile:
 
-    def __init__(self, coords: Coords, direction: Direction, util: Util):
+    def __init__(self, coords: Coords, direction: Direction,
+                 tiles_per_second: float, util: Util):
         self.coords = coords
         self.direction = direction
 
-        tpms = BULLET_TILES_PER_SECOND / 1000  # tiles per ms
+        tpms = tiles_per_second / 1000  # tiles per ms
         ppms = tpms * util.tile_width  # pixels per ms
         self.mspp = 1 / ppms  # ms per pixel
 
@@ -25,3 +26,8 @@ class Bullet:
 
         if px > 0:
             self.coords = get_next_xy(self.coords, self.direction, px)
+
+
+class Bullet(Projectile):
+    def __init__(self, coords: Coords, direction: Direction, util: Util):
+        super().__init__(coords, direction, BULLET_TILES_PER_SECOND, util)

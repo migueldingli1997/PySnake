@@ -1,26 +1,26 @@
 import random
 
 import numpy as np
-import pygame as pg
 
-from bullet import Bullet
+from helpers.config import Config
+from helpers.util import Size2D, Direction, Util, Coords
+from projectile import Bullet
 from snake import Snake
-from util import Size2D, Direction, Util, Coords
 
 STARTING_LEVEL = 1  # starting level
 BASE_SPEED = 3  # moves/sec at level 1
 ACCELERATION = 0.2  # extra moves/sec per level
 SAFE_ZONE_TILES = 999  # empty tiles in front after eating apple
 GHOST_TIMER_MS = 10000.0  # milliseconds
-INIT_NO_OF_BULLETS = 10  # initial number of bullets
+INIT_NO_OF_BULLETS = 10  # initial number of bullets after picking up powerup
 CLEAR_SKULLS_EVERY_LEVEL = False  # whether to create new skulls per level
 CLEAR_POWERUPS_IF_NOT_PICKED_UP = True  # whether to clear uncollected powerups
 
 
 class Game:
-    def __init__(self, util: Util, game_size_tiles: Size2D):
-        # Util
+    def __init__(self, util: Util, cfg: Config, game_size_tiles: Size2D):
         self.util = util
+        self.cfg = cfg
 
         # Game
         self.game_size_tiles = game_size_tiles
@@ -95,26 +95,26 @@ class Game:
         return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):
-        if key == pg.K_UP:
+        if key in self.cfg.ctrl_up:
             self.snake.set_direction(Direction.UP)
-        elif key == pg.K_DOWN:
+        elif key in self.cfg.ctrl_down:
             self.snake.set_direction(Direction.DOWN)
-        elif key == pg.K_LEFT:
+        elif key in self.cfg.ctrl_left:
             self.snake.set_direction(Direction.LEFT)
-        elif key == pg.K_RIGHT:
+        elif key in self.cfg.ctrl_right:
             self.snake.set_direction(Direction.RIGHT)
-        elif key in [pg.K_ESCAPE, pg.K_SPACE]:
+        elif key in self.cfg.ctrl_pause:
             self.trigger_pause()
-        elif key in [pg.K_LSHIFT, pg.K_RSHIFT]:
+        elif key in self.cfg.ctrl_boost:
             self.base_speed *= 3
-        elif key == pg.K_x and self.snake.has_bullets:
+        elif key in self.cfg.ctrl_shoot and self.snake.has_bullets:
             self.snake.use_bullet()
             self.fired_bullets.append(
                 Bullet(self.util.get_xy_center(self.snake.head),
                        self.snake.last_direction_moved, self.util))
 
     def release_key(self, key: int):
-        if key in [pg.K_LSHIFT, pg.K_RSHIFT]:
+        if key in self.cfg.ctrl_boost:
             self.base_speed /= 3
 
     def trigger_pause(self):

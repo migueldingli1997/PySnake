@@ -4,7 +4,7 @@ The classic arcade game Snake reimagined in Python using [Pygame](https://www.py
 ## Requirements
 Python 3 with Pipenv
 
-## Run
+## Run Game
 From the project directory:
 
 ```bash
@@ -13,7 +13,7 @@ pipenv run python src/main.py
 ```
 or:
 ```bash
-bash run.sh
+bash run_game.sh
 ```
 
 ## Configuration
@@ -39,11 +39,28 @@ An extra green skull is added for each apple consumed, whereas gray skulls are l
 Firing bullets at yourself has the same effect as a green skull, i.e. the snake's length is reduced by one. Similarly, if the snake is shielded, the shield gets destroyed instead of the snake shrinking.
 
 ### Controls
+#### Default Controls
 - Set snake direction: `Up`/`Down`/`Left`/`Right` arrows
 - Boost snake speed: `LShift` or `RSHift`
 - Fire bullets: `X`
 - Pause: `Esc` or `Space`
 - Quit: `Alt`+`F4` or close the window
+
+#### Reconfigure Controls
+From the project directory:
+
+```bash
+pipenv sync
+pipenv run python src/reconfig_controls.py
+```
+or:
+```bash
+bash run_reconfig_controls.sh
+```
+
+Pay special attention to the console output (stdout) as it will guide you through the reconfiguration process. For each control, you may either keep the current button/s by pressing ESCAPE, or input a new list with at least one button by pressing the button/s one by one and pressing ENTER at the end to submit the list.
+
+If something goes wrong with the reconfiguration, a `config_default.ini` file is included and can be used to replace a bad `config.ini`. 
 
 ### Screenshot
 ![](img/screenshot.png)
