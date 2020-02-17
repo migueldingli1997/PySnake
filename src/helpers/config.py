@@ -10,8 +10,12 @@ class Config:
         self.cp = None
 
     @classmethod
-    def parse_keys(self, keys: str) -> List[int]:
+    def parse_keys(cls, keys: str) -> List[int]:
         return [int(key) for key in keys.split(',')]
+
+    @classmethod
+    def keys_to_str(cls, keys: List[int]) -> str:
+        return ','.join([str(key) for key in keys])
 
     def read(self):
         self.cp = ConfigParser()
@@ -47,5 +51,13 @@ class Config:
         if self.cp is None:
             raise Exception('Tried to save None config')
 
-        with open(self.config_file, 'r') as fp:
-            self.cp = ConfigParser().write(fp)
+        self.cp['controls']['up'] = self.keys_to_str(self.ctrl_up)
+        self.cp['controls']['down'] = self.keys_to_str(self.ctrl_down)
+        self.cp['controls']['left'] = self.keys_to_str(self.ctrl_left)
+        self.cp['controls']['right'] = self.keys_to_str(self.ctrl_right)
+        self.cp['controls']['pause'] = self.keys_to_str(self.ctrl_pause)
+        self.cp['controls']['boost'] = self.keys_to_str(self.ctrl_boost)
+        self.cp['controls']['shoot'] = self.keys_to_str(self.ctrl_shoot)
+
+        with open(self.config_file, 'w') as fp:
+            self.cp.write(fp)
