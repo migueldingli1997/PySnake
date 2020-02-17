@@ -58,5 +58,7 @@ or:
 bash run_reconfig_controls.sh
 ```
 
+Pay special attention to the console. For each control, you may either keep the current button/s by pressing ESCAPE, or input a new list with at least one button by pressing the button/s one by one and pressing ENTER at the end to submit the list.
+
 ### Screenshot
 ![](img/screenshot.png)
