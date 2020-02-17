@@ -1,11 +1,12 @@
 import random
-from enum import Enum
 from typing import List, Tuple, Optional
 
 import numpy as np
 import pygame as pg
 from pygame.mixer import Sound
 from pygame.surface import Surface
+
+from helpers.direction import Direction
 
 Size2D = Tuple[int, int]
 Coords = Tuple[int, int]
@@ -17,13 +18,6 @@ def user_quit(event) -> bool:
     alt_f4 = event.type == pg.KEYDOWN and event.key == pg.K_F4 \
              and (pressed[pg.K_LALT] or pressed[pg.K_LALT])
     return event.type == pg.QUIT or alt_f4
-
-
-class Direction(Enum):
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
 
 
 def get_next_xy(coords: Coords, direction: Direction, px: int = 1) -> Coords:
