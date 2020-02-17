@@ -5,6 +5,7 @@ import pygame as pg
 from pygame.time import Clock
 
 from anim import Animation
+from config import CFG
 from game import Game
 from util import Util, user_quit
 
@@ -15,14 +16,6 @@ GAME_TITLE = 'PySnake'
 GAME_ICON = 'img/icon.png'
 IMG_FOLDER = 'img/'
 SFX_FOLDER = 'sfx/'
-
-# Keys
-GAME_KEYS = [
-    pg.K_UP, pg.K_DOWN, pg.K_LEFT, pg.K_RIGHT,  # snake control
-    pg.K_ESCAPE, pg.K_SPACE,  # pause
-    pg.K_LSHIFT, pg.K_RSHIFT,  # boost
-    pg.K_x  # fire bullet
-]
 
 
 def draw_game(screen, game: Game, dt: int):
@@ -126,10 +119,10 @@ def main() -> bool:
             if user_quit(event):
                 running = False
             elif event.type == pg.KEYDOWN:
-                if event.key in GAME_KEYS:
+                if event.key in CFG.all_keys:
                     game.press_key(event.key)
             elif event.type == pg.KEYUP:
-                if event.key in GAME_KEYS:
+                if event.key in CFG.all_keys:
                     game.release_key(event.key)
 
         if not game.paused:
