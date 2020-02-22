@@ -26,7 +26,7 @@ class Config:
         self.frames_per_second = int(video['frames_per_second'])
         self.window_size = self.height_px = self.width_px = \
             int(video['window_size'])
-        self.center_px = int(self.width_px / 2), int(self.height_px / 2)
+        self.font = video['font']
 
         if self.window_size not in VALID_WINDOW_SIZES:
             raise Exception('Invalid window size; Valid sizes: {}'
@@ -44,8 +44,6 @@ class Config:
         self.all_keys = \
             self.ctrl_up + self.ctrl_down + self.ctrl_left + self.ctrl_right + \
             self.ctrl_pause + self.ctrl_boost + self.ctrl_shoot
-
-        print()
 
     def write(self):
         if self.cp is None:

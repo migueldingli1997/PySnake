@@ -51,7 +51,7 @@ From the project directory:
 
 ```bash
 pipenv sync
-pipenv run python src/reconfig_controls.py
+pipenv run python src/helpers/reconfig.py
 ```
 or:
 ```bash

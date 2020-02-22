@@ -11,7 +11,7 @@ class Projectile:
         self.direction = direction
 
         tpms = tiles_per_second / 1000  # tiles per ms
-        ppms = tpms * util.tile_width  # pixels per ms
+        ppms = tpms * util.tile_width_px  # pixels per ms
         self.mspp = 1 / ppms  # ms per pixel
 
         self.time = 0

@@ -3,6 +3,7 @@ import random
 import numpy as np
 
 from helpers.config import Config
+from helpers.sfx import SfxHolder
 from helpers.util import Size2D, Direction, Util, Coords
 from projectile import Bullet
 from snake import Snake
@@ -18,9 +19,11 @@ CLEAR_POWERUPS_IF_NOT_PICKED_UP = True  # whether to clear uncollected powerups
 
 
 class Game:
-    def __init__(self, util: Util, cfg: Config, game_size_tiles: Size2D):
+    def __init__(self, util: Util, cfg: Config, sfx: SfxHolder,
+                 game_size_tiles: Size2D):
         self.util = util
         self.cfg = cfg
+        self.sfx = sfx
 
         # Game
         self.game_size_tiles = game_size_tiles
@@ -46,14 +49,6 @@ class Game:
         # Minus enemies (due to bomb)
         self.minus_enemies = 0
         self.minus_poisons = 0
-
-        # Audio
-        self.sfx_apple = util.load_sfx('apple.wav')
-        self.sfx_poison = util.load_sfx('poison.wav')
-        self.sfx_powerup = util.load_sfx('powerup.wav')
-        self.sfx_shield_off = util.load_sfx('shield_off.wav')
-        self.sfx_bullet_hit_skull = util.load_sfx('bullet_hit_skull.wav')
-        self.sfx_bullet_hit_snake = util.load_sfx('bullet_hit_snake.wav')
 
         # Generate first apple
         self.new_objects()
@@ -196,26 +191,26 @@ class Game:
             self.level += 1
             self.snake.grow_by_one()
             self.new_objects()
-            self.sfx_apple.play()
+            self.sfx.apple.play()
         elif head == self.pow_shield:
             self.snake.set_shield(True)
             self.pow_shield = None
-            self.sfx_powerup.play()
+            self.sfx.powerup.play()
         elif head == self.pow_ghost:
             self.snake.set_ghost(GHOST_TIMER_MS)
             self.pow_ghost = None
-            self.sfx_powerup.play()
+            self.sfx.powerup.play()
         elif head == self.pow_bomb:
             self.minus_enemies += self.no_of_enemies
             self.minus_poisons += self.no_of_poisons
             self.enemies.clear()
             self.poisons.clear()
             self.pow_shield = self.pow_ghost = self.pow_bomb = None
-            self.sfx_powerup.play()
+            self.sfx.powerup.play()
         elif head == self.pow_bullets:
             self.snake.add_bullets(INIT_NO_OF_BULLETS)
             self.pow_bullets = None
-            self.sfx_powerup.play()
+            self.sfx.powerup.play()
 
         # Check if hit enemy
         if not self.snake.is_ghost_on:
@@ -223,7 +218,7 @@ class Game:
                 self.enemies.remove(next(e for e in self.enemies if e == head))
                 if self.snake.is_shield_on:
                     self.snake.set_shield(False)
-                    self.sfx_shield_off.play()
+                    self.sfx.shield_off.play()
                 else:
                     self.game_over = True
             except StopIteration:
@@ -235,13 +230,13 @@ class Game:
                 self.poisons.remove(next(e for e in self.poisons if e == head))
                 if self.snake.is_shield_on:
                     self.snake.set_shield(False)
-                    self.sfx_shield_off.play()
+                    self.sfx.shield_off.play()
                 else:
                     self.snake.shrink(1)
                     if len(self.snake) < 1:
                         self.game_over = True
                     else:
-                        self.sfx_poison.play()
+                        self.sfx.poison.play()
             except StopIteration:
                 pass
 
@@ -254,21 +249,21 @@ class Game:
                 hits.append(b)
                 self.enemies.remove(bullet_tile)
                 self.minus_enemies += 1
-                self.sfx_bullet_hit_skull.play()
+                self.sfx.bullet_hit_skull.play()
             elif bullet_tile in self.poisons:
                 hits.append(b)
                 self.poisons.remove(bullet_tile)
                 self.minus_poisons += 1
-                self.sfx_bullet_hit_skull.play()
+                self.sfx.bullet_hit_skull.play()
             elif bullet_tile in self.snake.coords \
                     and bullet_tile != self.snake.head:
                 hits.append(b)
                 if self.snake.is_shield_on:
                     self.snake.set_shield(False)
-                    self.sfx_shield_off.play()
+                    self.sfx.shield_off.play()
                 else:
                     self.snake.shrink(1)
-                    self.sfx_bullet_hit_snake.play()
+                    self.sfx.bullet_hit_snake.play()
 
         # Hits means bullet can be removed
         for h in hits:

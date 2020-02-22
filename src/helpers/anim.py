@@ -2,7 +2,7 @@ import pygame as pg
 from pygame.surface import Surface
 
 
-class Animation:
+class SpriteSheetAnimation:
     def __init__(self, sprite_sheet: Surface, frames_per_second: float):
         # Sheet assumed to be horizontal
         self.size_per_sprite = sprite_sheet.get_height()
