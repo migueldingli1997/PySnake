@@ -2,7 +2,19 @@ import sys
 
 import pygame as pg
 
-from config import Config
+from helpers.config import Config
+
+
+def reconfig_player():
+    # Load
+    cfg = Config('config.ini')
+    cfg.read()
+
+    print('Current player name: {}'.format(cfg.cp['player']['name']))
+    cfg.cp['player']['name'] = input('Please insert new player name: ')
+
+    # Save name
+    cfg.write()
 
 
 def reconfig_controls():
@@ -78,6 +90,7 @@ def reconfig_controls():
         if done_save:
             controls[i] = (controls[i][0], new_control_buttons)
 
+    # Save controls
     cfg.ctrl_up = controls[0][1]
     cfg.ctrl_down = controls[1][1]
     cfg.ctrl_left = controls[2][1]
@@ -86,7 +99,3 @@ def reconfig_controls():
     cfg.ctrl_boost = controls[5][1]
     cfg.ctrl_shoot = controls[6][1]
     cfg.write()
-
-
-if __name__ == '__main__':
-    reconfig_controls()

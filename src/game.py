@@ -1,8 +1,10 @@
 import random
+from datetime import datetime
 
 import numpy as np
 
 from helpers.config import Config
+from helpers.score import Score
 from helpers.sfx import SfxHolder
 from helpers.util import Size2D, Direction, Util, Coords
 from projectile import Bullet
@@ -10,6 +12,7 @@ from snake import Snake
 
 STARTING_LEVEL = 1  # starting level
 BASE_SPEED = 3  # moves/sec at level 1
+BOOST_MULTIPLIER = 3  # multiplier when boost button pressed
 ACCELERATION = 0.2  # extra moves/sec per level
 SAFE_ZONE_TILES = 999  # empty tiles in front after eating apple
 GHOST_TIMER_MS = 10000.0  # milliseconds
@@ -69,6 +72,11 @@ class Game:
     def no_of_poisons(self) -> float:
         return (self.level - 1) - self.minus_poisons
 
+    def get_score(self) -> Score:
+        return Score(
+            self.cfg.player_name, self.snake.max_length_reached,
+            self.level, datetime.now())
+
     def should_spawn_shield(self) -> bool:
         # Coin toss on even levels > 6 if shield not on
         return self.level > 0 and self.level % 2 == 0 \
@@ -101,7 +109,7 @@ class Game:
         elif key in self.cfg.ctrl_pause:
             self.trigger_pause()
         elif key in self.cfg.ctrl_boost:
-            self.base_speed *= 3
+            self.base_speed *= BOOST_MULTIPLIER
         elif key in self.cfg.ctrl_shoot and self.snake.has_bullets:
             self.snake.use_bullet()
             self.fired_bullets.append(
@@ -110,7 +118,7 @@ class Game:
 
     def release_key(self, key: int):
         if key in self.cfg.ctrl_boost:
-            self.base_speed /= 3
+            self.base_speed /= BOOST_MULTIPLIER
 
     def trigger_pause(self):
         self.paused = not self.paused
