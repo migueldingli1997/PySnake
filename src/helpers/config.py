@@ -27,7 +27,6 @@ class Config:
         self.window_size = self.height_px = self.width_px = \
             int(video['window_size'])
         self.font = video['font']
-        self.center_px = int(self.width_px / 2), int(self.height_px / 2)
 
         if self.window_size not in VALID_WINDOW_SIZES:
             raise Exception('Invalid window size; Valid sizes: {}'

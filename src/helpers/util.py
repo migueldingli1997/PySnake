@@ -45,27 +45,28 @@ class Util:
 
     def __init__(self, game_size_pixels: Size2D, game_size_tiles: Size2D,
                  img_folder: str, sfx_folder: str):
-        self.width = game_size_pixels[0]
-        self.height = game_size_pixels[1]
+        self.width_px = game_size_pixels[0]
+        self.height_px = game_size_pixels[1]
+        self.center_px = int(self.width_px / 2), int(self.height_px / 2)
 
         self.tiles_x = game_size_tiles[0]
         self.tiles_y = game_size_tiles[1]
 
-        self.tile_width = self.width / self.tiles_x
-        self.tile_height = self.height / self.tiles_y
+        self.tile_width_px = self.width_px / self.tiles_x
+        self.tile_height_px = self.height_px / self.tiles_y
 
-        self.img = str(self.width) + '.png'
+        self.width_img_name = str(self.width_px) + '.png'
         self.img_folder = img_folder
         self.sfx_folder = sfx_folder
-
-    def get_img_path(self, folder: str) -> str:
-        return self.img_folder + folder + self.img
 
     def get_sfx_path(self, file: str) -> str:
         return self.sfx_folder + file
 
-    def load_img(self, img: str) -> Surface:
-        return pg.image.load(self.get_img_path(img))
+    def load_img(self, img_path: str) -> Surface:
+        return pg.image.load(self.img_folder + img_path)
+
+    def load_img_from_folder(self, folder: str) -> Surface:
+        return pg.image.load(self.img_folder + folder + self.width_img_name)
 
     def load_sfx(self, sfx: str, as_music: bool = False) -> Optional[Sound]:
         if as_music:
@@ -75,22 +76,22 @@ class Util:
             return pg.mixer.Sound(self.get_sfx_path(sfx))
 
     def get_xy(self, tile: Coords) -> Coords:
-        adjusted_x = tile[0] * self.tile_width
-        adjusted_y = tile[1] * self.tile_height
+        adjusted_x = tile[0] * self.tile_width_px
+        adjusted_y = tile[1] * self.tile_height_px
         return int(adjusted_x), int(adjusted_y)
 
     def get_xy_center(self, tile: Coords) -> Coords:
-        adjusted_x = (tile[0] * self.tile_width) + (self.tile_width / 2)
-        adjusted_y = (tile[1] * self.tile_height) + (self.tile_height / 2)
+        adjusted_x = (tile[0] * self.tile_width_px) + (self.tile_width_px / 2)
+        adjusted_y = (tile[1] * self.tile_height_px) + (self.tile_height_px / 2)
         return int(adjusted_x), int(adjusted_y)
 
     def is_xy_out_of_screen(self, xy: Coords) -> bool:
-        return xy[0] < 0 or xy[0] > self.width or \
-               xy[1] < 0 or xy[1] > self.height
+        return xy[0] < 0 or xy[0] > self.width_px or \
+               xy[1] < 0 or xy[1] > self.height_px
 
     def get_xy_tile(self, xy: Coords) -> Coords:
-        return int(xy[0] / self.tile_width), \
-               int(xy[1] / self.tile_height)
+        return int(xy[0] / self.tile_width_px), \
+               int(xy[1] / self.tile_height_px)
 
     def get_random_tile(self) -> Coords:
         return (random.randint(0, self.tiles_x - 1),

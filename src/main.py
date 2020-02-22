@@ -17,27 +17,27 @@ GAME_ICON = 'img/icon.png'
 IMG_FOLDER = 'img/'
 SFX_FOLDER = 'sfx/'
 
+# Initialise all imported pygame modules and clock
+pg.mixer.pre_init(44100, -16, 2, 1024)
+pg.init()
+
+# Initialise helper components
 CFG = Config('config.ini')
-CFG.read()
+CFG.read()  # read config
+UTIL = Util((CFG.width_px, CFG.height_px), (TILES_X, TILES_Y),
+            IMG_FOLDER, SFX_FOLDER)
+IMG = ImgHolder(UTIL)
+SFX = SfxHolder(UTIL)
+TXT = Text(CFG, UTIL)
 
 if __name__ == '__main__':
-    # Initialise all imported pygame modules and clock
-    pg.mixer.pre_init(44100, -16, 2, 1024)
-    pg.init()
-
-    # Utils and helpers
-    UTIL = Util((CFG.width_px, CFG.height_px), (TILES_X, TILES_Y),
-                IMG_FOLDER, SFX_FOLDER)
-    IMG = ImgHolder(UTIL)
-    SFX = SfxHolder(UTIL)
-    TXT = Text(CFG)
+    # Initialise game drawer and game loop
     DRAWER = Drawer(UTIL, IMG, TXT, CFG)
     LOOP = Loop(UTIL, CFG, SFX, TXT, DRAWER)
 
-    # Title and icon
-    icon = pg.image.load(GAME_ICON)
+    # Set title and icon
     pg.display.set_caption(GAME_TITLE)
-    pg.display.set_icon(icon)
+    pg.display.set_icon(IMG.game_icon)
 
     # Create screen
     screen: pg.Surface = pg.display.set_mode(
