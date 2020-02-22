@@ -55,7 +55,7 @@ class Loop:
                 return True
 
     def game_over(self, screen, game: Game, scores: ScoresList) -> bool:
-        self.score_saved = False  # not saved yet
+        score_saved = False  # not saved yet
         self.sfx.game_over.play()  # play audio
 
         i = 0
@@ -65,7 +65,7 @@ class Loop:
                 pg.event.get()  # dummy get
                 self.drawer.draw_game(screen, game, 0)  # draw game
                 self.drawer.draw_game_over_overlay(
-                    screen, i, self.score_saved)  # fade-in game over screen
+                    screen, i, score_saved)  # fade-in game over screen
                 self.clock.tick(60)  # slow-down the fade-in
 
                 # Refresh screen
@@ -79,8 +79,8 @@ class Loop:
                 elif event.type == pg.MOUSEBUTTONDOWN:
                     if self.txt.restart_rect.collidepoint(*event.pos):
                         return True
-                    elif not self.score_saved and \
+                    elif not score_saved and \
                             self.txt.save_score_rect.collidepoint(*event.pos):
                         scores.add_score(game.get_score())
                         scores.write()
-                        self.score_saved = True
+                        score_saved = True
