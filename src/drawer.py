@@ -136,10 +136,9 @@ class Drawer():
         screen.blit(self.img.game_over, (0, 0))
 
         # Restart button
-        screen.blit(self.txt.restart_text, self.txt.restart_text_rect)
-        if self.txt.restart_text_rect.collidepoint(pg.mouse.get_pos()):
-            pg.draw.rect(screen, pg.Color('White'),
-                         self.txt.restart_text_rect, 2)
+        screen.blit(self.txt.restart, self.txt.restart_rect)
+        if self.txt.restart_rect.collidepoint(pg.mouse.get_pos()):
+            pg.draw.rect(screen, pg.Color('White'), self.txt.restart_rect, 2)
 
     def draw_paused_overlay(self, screen):
-        screen.blit(self.txt.paused_text, self.txt.paused_text_rect)
+        screen.blit(self.txt.paused, self.txt.paused_rect)

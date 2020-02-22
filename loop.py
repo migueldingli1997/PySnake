@@ -72,7 +72,7 @@ class Loop:
                 if user_quit(event):
                     return False
                 elif event.type == pg.MOUSEBUTTONDOWN:
-                    if self.txt.restart_text_rect.collidepoint(*event.pos):
+                    if self.txt.restart_rect.collidepoint(*event.pos):
                         return True
 
         # Wait till user quits or restarts
@@ -81,5 +81,5 @@ class Loop:
                 if user_quit(event):
                     return False
                 elif event.type == pg.MOUSEBUTTONDOWN:
-                    if self.txt.restart_text_rect.collidepoint(*event.pos):
+                    if self.txt.restart_rect.collidepoint(*event.pos):
                         return True
