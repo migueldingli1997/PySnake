@@ -35,9 +35,10 @@ Firing bullets at yourself has the same effect as a green skull, i.e. the snake'
 - Pause: `Esc` or `Space`
 - Quit: `Alt`+`F4` or close the window
 
-### Reconfigure Player Name and Controls
+### (Re)Configuration
+Configurations are saved in the `config.ini` file. A `config_default.ini` guaranteed to work is provided, which can be used to reacreate the `config.ini` file if it becomes unusable for any reason. Some scripts are provided to make reconfiguration of certain aspects of the game easier.
 
-#### Reconfigure Player
+#### Reconfigure Player Name
 ```bash
 bash run_reconfig_player.sh
 ```
