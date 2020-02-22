@@ -39,10 +39,11 @@ class ScoresList:
             f[KEY] = self.scores_list
 
     def add_score(self, new_score: Score):
-        new_score_index = len(self.scores_list)
+        new_score_index = len(self.scores_list)  # assume lowest score
         for i, s in enumerate(self.scores_list):
             if new_score.score > s.score:
-                new_score_index = i
+                new_score_index = i  # take this position
+                break
 
         if new_score_index < MAX_SCORES:
             self.scores_list.insert(new_score_index, new_score)
