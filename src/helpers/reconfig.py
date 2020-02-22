@@ -2,7 +2,7 @@ import sys
 
 import pygame as pg
 
-from helpers.config import Config
+from config import Config
 
 
 def reconfig_controls():
@@ -77,8 +77,6 @@ def reconfig_controls():
 
         if done_save:
             controls[i] = (controls[i][0], new_control_buttons)
-
-        print()
 
     cfg.ctrl_up = controls[0][1]
     cfg.ctrl_down = controls[1][1]

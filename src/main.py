@@ -1,12 +1,13 @@
-from typing import Tuple
-
 import pygame as pg
 from pygame.time import Clock
 
-from anim import Animation
+from drawer import Drawer
 from game import Game
 from helpers.config import Config
-from helpers.util import Util, user_quit, rotate_image
+from helpers.img import ImgLoader
+from helpers.sfx import SfxHolder
+from helpers.text import Text
+from helpers.util import Util, user_quit
 
 TILES_X = 30
 TILES_Y = 30
@@ -20,145 +21,50 @@ CFG = Config('config.ini')
 CFG.read()
 
 
-def draw_game(screen, game: Game, dt: int):
-    # Background
-    screen.blit(BG_IMG, (0, 0))
-
-    # Draw snake parts (tail and head)
-    snake_img = SNAKE_GHOST_IMG if game.snake.is_ghost_on else SNAKE_NORMAL_IMG
-    for s in game.snake:
-        screen.blit(snake_img, UTIL.get_xy(s))
-    if game.snake.head is not None:
-        screen.blit(
-            rotate_image(SNAKE_EYES_IMG, game.snake.last_direction_moved),
-            UTIL.get_xy(game.snake.head))
-
-    # Draw shield on top of snake if has shield on
-    if game.snake.is_shield_on:
-        for s in game.snake:
-            screen.blit(SNAKE_SHIELDED_IMG, UTIL.get_xy(s))
-
-    # Draw apple
-    if game.apple is not None:
-        screen.blit(APPLE_IMG, UTIL.get_xy(game.apple))
-
-    # Draw powerups
-    PUP_ANIM.move(dt)
-    powerups = [game.pow_shield, game.pow_ghost,
-                game.pow_bomb, game.pow_bullets]
-    for powerup, image in zip(powerups, POWERUP_IMGS):
-        if powerup is not None:
-            screen.blit(PUP_ANIM.get_sprite(), UTIL.get_xy(powerup))
-            screen.blit(image, UTIL.get_xy(powerup))
-
-    # Draw enemies
-    for e in game.enemies:
-        screen.blit(ENEMY_IMG, UTIL.get_xy(e))
-
-    # Draw poisons
-    for p in game.poisons:
-        screen.blit(POISON_IMG, UTIL.get_xy(p))
-
-    # Draw bullets
-    for b in game.fired_bullets:
-        pg.draw.circle(screen, pg.Color('Yellow'), b.coords, 4)
-
-    font = pg.font.SysFont('arial', int(CFG.width_px / 40))
-    y_offset = 0
-
-    # Draw current level
-    level_text = 'Current level: {}'.format(game.level)
-    level_surface = font.render(level_text, True, pg.Color('white'))
-    screen.blit(level_surface, (0, y_offset))
-    y_offset += level_surface.get_height()
-
-    # Draw current length
-    curlen_text = 'Current length: {}'.format(len(game.snake))
-    curlen_surface = font.render(curlen_text, True, pg.Color('white'))
-    screen.blit(curlen_surface, (0, y_offset))
-    y_offset += curlen_surface.get_height()
-
-    # Draw max length
-    maxlen_text = 'Max length: {}'.format(game.snake.max_length_reached)
-    maxlen_surface = font.render(maxlen_text, True, pg.Color('white'))
-    screen.blit(maxlen_surface, (0, y_offset))
-    y_offset += maxlen_surface.get_height()
-
-    # Draw bullets indicator
-    if game.snake.bullets > 0:
-        bullets_text = 'Bullets: {}'.format(game.snake.bullets)
-        bullets_surface = font.render(bullets_text, True, pg.Color('white'))
-        screen.blit(bullets_surface, (0, y_offset))
-        y_offset += bullets_surface.get_height()
-
-    # Draw ghost indicator
-    if game.snake.ghost_ms > 0:
-        ghost_seconds = game.snake.ghost_ms / 1000
-        ghost_text = 'Ghost: {:.1f}'.format(ghost_seconds)
-        ghost_surface = font.render(ghost_text, True, pg.Color('white'))
-        screen.blit(ghost_surface, (0, y_offset))
-        y_offset += ghost_surface.get_height()
-
-    # Draw shield indicator
-    if game.snake.is_shield_on:
-        shield_text = 'Shield: ON'
-        shield_surface = font.render(shield_text, True, pg.Color('white'))
-        screen.blit(shield_surface, (0, y_offset))
-        y_offset += shield_surface.get_height()
-
-
-def game_over() -> Tuple[bool, bool]:
-    running, restart = True, False
-
+def game_over() -> bool:
     # Audio
-    GAME_OVER_SFX.play()
+    SFX.game_over.play()
 
     # Fade-in game over screen
     for i in range(255):
         pg.event.get()  # dummy get
-        draw_game(screen, game, 0)  # draw game
-
-        # Fade-in game over screen
-        GAME_OVER_IMG.set_alpha(i)
-        screen.blit(GAME_OVER_IMG, (0, 0))
-        clock.tick(60)
-
-        # Restart button
-        screen.blit(restart_text, restart_text_rect)
-        if restart_text_rect.collidepoint(pg.mouse.get_pos()):
-            pg.draw.rect(screen, pg.Color('White'), restart_text_rect, 2)
+        DRAWER.draw_game(screen, game, 0)  # draw game
+        DRAWER.draw_game_over_overlay(screen, i)  # fade-in game over image
+        clock.tick(60)  # slow-down the fade-in
 
         # Refresh screen
         pg.display.flip()
 
+        # Check for quit or restart events
         for event in pg.event.get():
             if user_quit(event):
-                running = False
-                break
+                return False
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if restart_text_rect.collidepoint(*event.pos):
-                    restart = True
-                    break
-        if not running or restart:
-            break
+                if TXT.restart_text_rect.collidepoint(*event.pos):
+                    return True
 
-    # False if user closed the game
-    return running, restart
+    # Wait till user quits or restarts
+    while True:
+        for event in pg.event.get():
+            if user_quit(event):
+                return False
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if TXT.restart_text_rect.collidepoint(*event.pos):
+                    return True
 
 
 def main() -> bool:
     # Dump first tick to ignore past
     clock.tick(CFG.frames_per_second)
 
-    running = True
-    while running:
+    while True:
         # Get change in time
         dt = clock.tick(CFG.frames_per_second)
 
-        # Loop over events
+        # Loop over events (quit, key down, key up)
         for event in pg.event.get():
             if user_quit(event):
-                running = False
+                return False
             elif event.type == pg.KEYDOWN:
                 if event.key in CFG.all_keys:
                     game.press_key(event.key)
@@ -170,64 +76,31 @@ def main() -> bool:
             # Move and draw game
             game.move(dt)
             if not game.game_over:
-                draw_game(screen, game, dt)
+                DRAWER.draw_game(screen, game, dt)
         else:
-            screen.blit(paused_text, paused_text_rect)
+            DRAWER.draw_paused_overlay(screen)
 
         # Update display
         pg.display.update()
 
         # Break if game no longer running
         if game.game_over:
-            break
-
-    # False if user closed the game
-    return running
+            return True
 
 
 if __name__ == '__main__':
-    # Util class
-    UTIL = Util((CFG.width_px, CFG.height_px), (TILES_X, TILES_Y),
-                IMG_FOLDER, SFX_FOLDER)
-
-    # Images
-    APPLE_IMG = UTIL.load_img('apple/')
-    BG_IMG = UTIL.load_img('background/')
-    ENEMY_IMG = UTIL.load_img('skulls/enemy/')
-    POISON_IMG = UTIL.load_img('skulls/poison/')
-    SHIELD_IMG = UTIL.load_img('powerups/shield/')
-    GHOST_IMG = UTIL.load_img('powerups/ghost/')
-    BOMB_IMG = UTIL.load_img('powerups/bomb/')
-    BULLETS_IMG = UTIL.load_img('powerups/bullets/')
-    SNAKE_NORMAL_IMG = UTIL.load_img('snake/snake/')
-    SNAKE_EYES_IMG = UTIL.load_img('snake/eyes/')
-    SNAKE_GHOST_IMG = UTIL.load_img('snake/ghost/')
-    SNAKE_SHIELDED_IMG = UTIL.load_img('snake/shielded/')
-    GAME_OVER_IMG = UTIL.load_img('theEnd/')
-
-    # Powerup marker animation
-    PUP_ANIM = Animation(UTIL.load_img('powerups/marker/'), 40)
-
-    # Helpers
-    POWERUP_IMGS = [SHIELD_IMG, GHOST_IMG, BOMB_IMG, BULLETS_IMG]
-
     # Initialise all imported pygame modules and clock
     pg.mixer.pre_init(44100, -16, 2, 1024)
     pg.init()
     clock = Clock()
 
-    # SFX
-    GAME_OVER_SFX = UTIL.load_sfx('endgame.wav')
-
-    # Text
-    paused_font = pg.font.SysFont('arial', int(CFG.width_px / 20))
-    paused_text = paused_font.render('PAUSED', True, pg.Color('white'))
-    paused_text_rect = paused_text.get_rect(center=CFG.center_px)
-    restart_font = pg.font.SysFont('arial', int(CFG.width_px / 30))
-    restart_text = restart_font.render(' Restart ', True, pg.Color('white'))
-    restart_text_rect = restart_text.get_rect()
-    restart_text_rect.top = CFG.height_px - restart_text_rect.height
-    restart_text_rect.left = CFG.width_px - restart_text_rect.width
+    # Utils and helpers
+    UTIL = Util((CFG.width_px, CFG.height_px), (TILES_X, TILES_Y),
+                IMG_FOLDER, SFX_FOLDER)
+    IMG = ImgLoader(UTIL)
+    SFX = SfxHolder(UTIL)
+    TXT = Text(CFG)
+    DRAWER = Drawer(UTIL, IMG, TXT, CFG)
 
     # Title and icon
     icon = pg.image.load(GAME_ICON)
@@ -237,30 +110,14 @@ if __name__ == '__main__':
     # Create screen
     screen: pg.Surface = pg.display.set_mode(
         (CFG.width_px, CFG.height_px), pg.FULLSCREEN if CFG.full_screen else 0)
-
-    # Finishing touches
-    GAME_OVER_IMG = GAME_OVER_IMG.convert()
+    IMG.post_init()  # final steps now that video mode has been set
 
     running = True
     while running:
         # Create and run game
-        game = Game(UTIL, CFG, (TILES_X, TILES_Y))
+        game = Game(UTIL, CFG, SFX, (TILES_X, TILES_Y))
         running = main()  # runs game loop
-        restart = False
 
         # Game over sequence (if game still running)
         if running:
-            running, restart = game_over()
-
-        # Restart game
-        if running and restart:
-            continue
-
-        # Wait till user quits or restarts (if game still running)
-        while running and not restart:
-            for event in pg.event.get():
-                if user_quit(event):
-                    running = False
-                elif event.type == pg.MOUSEBUTTONDOWN:
-                    if restart_text_rect.collidepoint(*event.pos):
-                        restart = True
+            running = game_over()
