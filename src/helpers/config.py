@@ -21,6 +21,9 @@ class Config:
         self.cp = ConfigParser()
         self.cp.read(self.config_file)
 
+        player = self.cp['player']
+        self.player_name = player['name']
+
         video = self.cp['video']
         self.full_screen = video['full_screen'].lower() in ['true', 'yes']
         self.frames_per_second = int(video['frames_per_second'])

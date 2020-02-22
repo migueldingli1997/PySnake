@@ -1,7 +1,6 @@
-import pygame as pg
-
 from game import Game
 from helpers.anim import SpriteSheetAnimation
+from helpers.colours import *
 from helpers.config import Config
 from helpers.img import ImgHolder
 from helpers.text import Text
@@ -69,29 +68,26 @@ class Drawer():
 
         def draw_bullets():
             for b in game.fired_bullets:
-                pg.draw.circle(screen, pg.Color('Yellow'), b.coords, 4)
+                pg.draw.circle(screen, YELLOW, b.coords, 4)
 
         def draw_hud():
             y_offset = 0
 
             # Draw current level
             level_text = 'Current level: {}'.format(game.level)
-            level_surface = self.hud_font.render(level_text, True,
-                                                 pg.Color('white'))
+            level_surface = self.hud_font.render(level_text, True, WHITE)
             screen.blit(level_surface, (0, y_offset))
             y_offset += level_surface.get_height()
 
             # Draw current length
             curlen_text = 'Current length: {}'.format(len(game.snake))
-            curlen_surface = self.hud_font.render(curlen_text, True,
-                                                  pg.Color('white'))
+            curlen_surface = self.hud_font.render(curlen_text, True, WHITE)
             screen.blit(curlen_surface, (0, y_offset))
             y_offset += curlen_surface.get_height()
 
             # Draw max length
             maxlen_text = 'Max length: {}'.format(game.snake.max_length_reached)
-            maxlen_surface = self.hud_font.render(maxlen_text, True,
-                                                  pg.Color('white'))
+            maxlen_surface = self.hud_font.render(maxlen_text, True, WHITE)
             screen.blit(maxlen_surface, (0, y_offset))
             y_offset += maxlen_surface.get_height()
 
@@ -99,7 +95,7 @@ class Drawer():
             if game.snake.bullets > 0:
                 bullets_text = 'Bullets: {}'.format(game.snake.bullets)
                 bullets_surface = self.hud_font.render(bullets_text, True,
-                                                       pg.Color('white'))
+                                                       WHITE)
                 screen.blit(bullets_surface, (0, y_offset))
                 y_offset += bullets_surface.get_height()
 
@@ -107,16 +103,14 @@ class Drawer():
             if game.snake.ghost_ms > 0:
                 ghost_seconds = game.snake.ghost_ms / 1000
                 ghost_text = 'Ghost: {:.1f}'.format(ghost_seconds)
-                ghost_surface = self.hud_font.render(ghost_text, True,
-                                                     pg.Color('white'))
+                ghost_surface = self.hud_font.render(ghost_text, True, WHITE)
                 screen.blit(ghost_surface, (0, y_offset))
                 y_offset += ghost_surface.get_height()
 
             # Draw shield indicator
             if game.snake.is_shield_on:
                 shield_text = 'Shield: ON'
-                shield_surface = self.hud_font.render(shield_text, True,
-                                                      pg.Color('white'))
+                shield_surface = self.hud_font.render(shield_text, True, WHITE)
                 screen.blit(shield_surface, (0, y_offset))
                 y_offset += shield_surface.get_height()
 
@@ -130,7 +124,7 @@ class Drawer():
         draw_bullets()
         draw_hud()
 
-    def draw_game_over_overlay(self, screen, alpha: int):
+    def draw_game_over_overlay(self, screen, alpha: int, score_saved: bool):
         # Game over image
         self.img.game_over.set_alpha(alpha)
         screen.blit(self.img.game_over, (0, 0))
@@ -138,7 +132,15 @@ class Drawer():
         # Restart button
         screen.blit(self.txt.restart, self.txt.restart_rect)
         if self.txt.restart_rect.collidepoint(pg.mouse.get_pos()):
-            pg.draw.rect(screen, pg.Color('White'), self.txt.restart_rect, 2)
+            pg.draw.rect(screen, WHITE, self.txt.restart_rect, 2)
+
+        # Save score button (or score saved text if score saved)
+        if not score_saved:
+            screen.blit(self.txt.save_score, self.txt.save_score_rect)
+            if self.txt.save_score_rect.collidepoint(pg.mouse.get_pos()):
+                pg.draw.rect(screen, WHITE, self.txt.save_score_rect, 2)
+        else:
+            screen.blit(self.txt.score_saved, self.txt.score_saved_rect)
 
     def draw_paused_overlay(self, screen):
         screen.blit(self.txt.paused, self.txt.paused_rect)

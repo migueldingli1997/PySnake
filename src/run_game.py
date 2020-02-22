@@ -4,6 +4,7 @@ from drawer import Drawer
 from game import Game
 from helpers.config import Config
 from helpers.img import ImgHolder
+from helpers.score import ScoresList
 from helpers.sfx import SfxHolder
 from helpers.text import Text
 from helpers.util import Util
@@ -24,6 +25,8 @@ pg.init()
 # Initialise helper components
 CFG = Config('config.ini')
 CFG.read()  # read config
+SCORES = ScoresList('highscores')
+SCORES.read()
 UTIL = Util((CFG.width_px, CFG.height_px), (TILES_X, TILES_Y),
             IMG_FOLDER, SFX_FOLDER)
 IMG = ImgHolder(UTIL)
@@ -52,4 +55,4 @@ if __name__ == '__main__':
 
         # Game over sequence (if game still running)
         if running:
-            running = LOOP.game_over(screen, game)
+            running = LOOP.game_over(screen, game, SCORES)

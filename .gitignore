@@ -1,3 +1,9 @@
+# IDE
 .idea/
+
+# Python
 __pycache__/
 *.pyc
+
+# Highscores
+highscores.*
