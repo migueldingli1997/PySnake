@@ -3,13 +3,13 @@ import pygame as pg
 from game import Game
 from helpers.anim import SpriteSheetAnimation
 from helpers.config import Config
-from helpers.img import ImgLoader
+from helpers.img import ImgHolder
 from helpers.text import Text
 from helpers.util import rotate_image, Util
 
 
 class Drawer():
-    def __init__(self, util: Util, img: ImgLoader, txt: Text, cfg: Config):
+    def __init__(self, util: Util, img: ImgHolder, txt: Text, cfg: Config):
         self.util = util
         self.img = img
         self.txt = txt
@@ -25,7 +25,9 @@ class Drawer():
 
         def draw_snake_parts():
             # Draw snake parts (tail and head)
-            snake_img = self.img.snake_ghost if game.snake.is_ghost_on else self.img.snake_normal
+            snake_img = self.img.snake_ghost \
+                if game.snake.is_ghost_on \
+                else self.img.snake_normal
             for s in game.snake:
                 screen.blit(snake_img, self.util.get_xy(s))
             if game.snake.head is not None:

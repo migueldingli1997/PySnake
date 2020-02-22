@@ -1,7 +1,7 @@
 from helpers.util import Util
 
 
-class ImgLoader:
+class ImgHolder:
     def __init__(self, util: Util):
         self.apple = util.load_img('apple/')
         self.background = util.load_img('background/')
