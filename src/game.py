@@ -39,7 +39,12 @@ class Game:
         self.time_ms = 0  # milliseconds since last snake move
 
         # Entities
-        self.snake = Snake(game_size_tiles, util)
+        self.snakes = [Snake(game_size_tiles, util),
+                       Snake(game_size_tiles, util),
+                       Snake(game_size_tiles, util),
+                       Snake(game_size_tiles, util),
+                       Snake(game_size_tiles, util)]
+        # TODO: configurable number of snakes
         self.enemies = []
         self.poisons = []
         self.apple = None
@@ -73,21 +78,24 @@ class Game:
         return (self.level - 1) - self.minus_poisons
 
     def get_score(self) -> Score:
+        snake = self.snakes[0]  # TODO: consider for each snake
         return Score(
-            self.cfg.player_name, self.snake.max_length_reached,
+            self.cfg.player_name, snake.max_length_reached,
             self.level, datetime.now())
 
     def should_spawn_shield(self) -> bool:
+        snake = self.snakes[0]  # TODO: consider all snakes or none at all
         # Coin toss on even levels > 6 if shield not on
         return self.level > 0 and self.level % 2 == 0 \
                and bool(random.getrandbits(1)) \
-               and not self.snake.is_shield_on
+               and not snake.is_shield_on
 
     def should_spawn_ghost(self) -> bool:
+        snake = self.snakes[0]  # TODO: consider all snakes or none at all
         # Coin toss on odd levels > 10 if ghost not on
         return self.level > 10 and self.level % 2 == 1 \
                and bool(random.getrandbits(1)) \
-               and not self.snake.is_ghost_on
+               and not snake.is_ghost_on
 
     def should_spawn_bomb(self) -> bool:
         # Every 20n'th level for n >= 1
@@ -98,23 +106,24 @@ class Game:
         return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):
+        snake = self.snakes[0]  # TODO: consider for each snake
         if key in self.cfg.ctrl_up:
-            self.snake.set_direction(Direction.UP)
+            snake.set_direction(Direction.UP)
         elif key in self.cfg.ctrl_down:
-            self.snake.set_direction(Direction.DOWN)
+            snake.set_direction(Direction.DOWN)
         elif key in self.cfg.ctrl_left:
-            self.snake.set_direction(Direction.LEFT)
+            snake.set_direction(Direction.LEFT)
         elif key in self.cfg.ctrl_right:
-            self.snake.set_direction(Direction.RIGHT)
+            snake.set_direction(Direction.RIGHT)
         elif key in self.cfg.ctrl_pause:
             self.trigger_pause()
         elif key in self.cfg.ctrl_boost:
             self.base_speed *= BOOST_MULTIPLIER
-        elif key in self.cfg.ctrl_shoot and self.snake.has_bullets:
-            self.snake.use_bullet()
+        elif key in self.cfg.ctrl_shoot and snake.has_bullets:
+            snake.use_bullet()
             self.fired_bullets.append(
-                Bullet(self.util.get_xy_center(self.snake.head),
-                       self.snake.last_direction_moved, self.util))
+                Bullet(self.util.get_xy_center(snake.head),
+                       snake.last_direction_moved, self.util))
 
     def release_key(self, key: int):
         if key in self.cfg.ctrl_boost:
@@ -132,8 +141,9 @@ class Game:
         taken = np.zeros(self.game_size_tiles, dtype=bool)
 
         # Objects that will not change position
-        for s in self.snake:
-            taken[s[0]][s[1]] = True
+        for snake in self.snakes:
+            for s in snake:
+                taken[s[0]][s[1]] = True
         if not CLEAR_POWERUPS_IF_NOT_PICKED_UP:
             for powerup in [self.pow_shield, self.pow_ghost,
                             self.pow_bomb, self.pow_bullets]:
@@ -173,10 +183,11 @@ class Game:
             self.pow_bullets = self.get_free_tile(taken)
 
         # Mark front of snake taken to avoid immediately hitting enemies/poison
-        to_mark = self.snake.head
-        for i in range(SAFE_ZONE_TILES):
-            to_mark = self.util.get_next_tile(to_mark, self.snake.direction)
-            taken[to_mark[0]][to_mark[1]] = True
+        for snake in self.snakes:
+            to_mark = snake.head
+            for i in range(SAFE_ZONE_TILES):
+                to_mark = self.util.get_next_tile(to_mark, snake.direction)
+                taken[to_mark[0]][to_mark[1]] = True
 
         # Match enemies list with expected number of enemies
         while len(self.enemies) < int(self.no_of_enemies):
@@ -190,22 +201,22 @@ class Game:
         while len(self.poisons) > int(self.no_of_poisons):
             self.poisons = self.poisons[:-1]
 
-    def check_snake_hits(self):
+    def check_snake_hits(self, snake: Snake):
         # Check if hit itself, apple, power-ups
-        head = self.snake.head
-        if head in self.snake.tail and not self.snake.is_ghost_on:
+        head = snake.head
+        if head in snake.tail and not snake.is_ghost_on:
             self.game_over = True
         elif head == self.apple:
             self.level += 1
-            self.snake.grow_by_one()
+            snake.grow_by_one()
             self.new_objects()
             self.sfx.apple.play()
         elif head == self.pow_shield:
-            self.snake.set_shield(True)
+            snake.set_shield(True)
             self.pow_shield = None
             self.sfx.powerup.play()
         elif head == self.pow_ghost:
-            self.snake.set_ghost(GHOST_TIMER_MS)
+            snake.set_ghost(GHOST_TIMER_MS)
             self.pow_ghost = None
             self.sfx.powerup.play()
         elif head == self.pow_bomb:
@@ -216,16 +227,16 @@ class Game:
             self.pow_shield = self.pow_ghost = self.pow_bomb = None
             self.sfx.powerup.play()
         elif head == self.pow_bullets:
-            self.snake.add_bullets(INIT_NO_OF_BULLETS)
+            snake.add_bullets(INIT_NO_OF_BULLETS)
             self.pow_bullets = None
             self.sfx.powerup.play()
 
         # Check if hit enemy
-        if not self.snake.is_ghost_on:
+        if not snake.is_ghost_on:
             try:
                 self.enemies.remove(next(e for e in self.enemies if e == head))
-                if self.snake.is_shield_on:
-                    self.snake.set_shield(False)
+                if snake.is_shield_on:
+                    snake.set_shield(False)
                     self.sfx.shield_off.play()
                 else:
                     self.game_over = True
@@ -233,22 +244,22 @@ class Game:
                 pass
 
         # Check if hit poison
-        if not self.snake.is_ghost_on:
+        if not snake.is_ghost_on:
             try:
                 self.poisons.remove(next(e for e in self.poisons if e == head))
-                if self.snake.is_shield_on:
-                    self.snake.set_shield(False)
+                if snake.is_shield_on:
+                    snake.set_shield(False)
                     self.sfx.shield_off.play()
                 else:
-                    self.snake.shrink(1)
-                    if len(self.snake) < 1:
+                    snake.shrink(1)
+                    if len(snake) < 1:
                         self.game_over = True
                     else:
                         self.sfx.poison.play()
             except StopIteration:
                 pass
 
-    def check_bullet_hits(self):
+    def check_bullet_hits(self, snake: Snake):
         # Check if bullets hit an enemy, poison, or snake
         hits = []
         for b in self.fired_bullets:
@@ -263,14 +274,14 @@ class Game:
                 self.poisons.remove(bullet_tile)
                 self.minus_poisons += 1
                 self.sfx.bullet_hit_skull.play()
-            elif bullet_tile in self.snake.coords \
-                    and bullet_tile != self.snake.head:
+            elif bullet_tile in snake.coords \
+                    and bullet_tile != snake.head:
                 hits.append(b)
-                if self.snake.is_shield_on:
-                    self.snake.set_shield(False)
+                if snake.is_shield_on:
+                    snake.set_shield(False)
                     self.sfx.shield_off.play()
                 else:
-                    self.snake.shrink(1)
+                    snake.shrink(1)
                     self.sfx.bullet_hit_snake.play()
 
         # Hits means bullet can be removed
@@ -288,10 +299,12 @@ class Game:
                 self.time_ms -= self.ms_per_move
 
                 # Move snake
-                self.snake.move(self.ms_per_move)
+                for snake in self.snakes:
+                    snake.move(self.ms_per_move)
 
             # Check if snake hit something
-            self.check_snake_hits()
+            for snake in self.snakes:
+                self.check_snake_hits(snake)
 
         # Remove bullets if out of screen
         bullets_to_remove = [b for b in self.fired_bullets
@@ -304,4 +317,5 @@ class Game:
             b.move(dt)
 
         # Check if bullets hit something
-        self.check_bullet_hits()
+        for snake in self.snakes:
+            self.check_bullet_hits(snake)
