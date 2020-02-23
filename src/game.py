@@ -302,9 +302,9 @@ class Game:
                 for snake in self.snakes:
                     snake.move(self.ms_per_move)
 
-            # Check if snake hit something
-            for snake in self.snakes:
-                self.check_snake_hits(snake)
+                # Check if snake hit something
+                for snake in self.snakes:
+                    self.check_snake_hits(snake)
 
         # Remove bullets if out of screen
         bullets_to_remove = [b for b in self.fired_bullets
