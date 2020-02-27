@@ -23,6 +23,11 @@ class Snake:
             self.coords += [(0, 0)]
         self.max_length_reached = len(self.coords)
 
+        self.alive = True
+
+    def __contains__(self, item):
+        return item in self.coords
+
     def __len__(self) -> int:
         return len(self.coords)
 
@@ -99,3 +104,9 @@ class Snake:
         # Deduct time from ghost powerup
         if self.is_ghost_on:
             self.ghost_ms = max(0, self.ghost_ms - dt)
+
+    def is_alive(self) -> bool:
+        return self.alive
+
+    def kill(self) -> None:
+        self.alive = False

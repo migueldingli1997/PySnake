@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+from typing import List
 
 import numpy as np
 
@@ -45,6 +46,11 @@ class Game:
                        Snake(game_size_tiles, util),
                        Snake(game_size_tiles, util)]
         # TODO: configurable number of snakes
+
+        # If multiple snakes, make ghosts so that they don't immediately collide
+        for s in self.snakes:
+            s.set_ghost(GHOST_TIMER_MS)
+
         self.enemies = []
         self.poisons = []
         self.apple = None
@@ -201,11 +207,12 @@ class Game:
         while len(self.poisons) > int(self.no_of_poisons):
             self.poisons = self.poisons[:-1]
 
-    def check_snake_hits(self, snake: Snake):
+    def check_snake_hits(self, snake: Snake, other_snakes: List[Snake]):
         # Check if hit itself, apple, power-ups
         head = snake.head
         if head in snake.tail and not snake.is_ghost_on:
-            self.game_over = True
+            snake.kill()
+            return
         elif head == self.apple:
             self.level += 1
             snake.grow_by_one()
@@ -231,6 +238,13 @@ class Game:
             self.pow_bullets = None
             self.sfx.powerup.play()
 
+        # Check if hit other snake
+        if not snake.is_ghost_on:
+            for s in other_snakes:
+                if head in s:
+                    snake.kill()
+                    return
+
         # Check if hit enemy
         if not snake.is_ghost_on:
             try:
@@ -239,7 +253,8 @@ class Game:
                     snake.set_shield(False)
                     self.sfx.shield_off.play()
                 else:
-                    self.game_over = True
+                    snake.kill()
+                    return
             except StopIteration:
                 pass
 
@@ -253,7 +268,8 @@ class Game:
                 else:
                     snake.shrink(1)
                     if len(snake) < 1:
-                        self.game_over = True
+                        snake.kill()
+                        return
                     else:
                         self.sfx.poison.play()
             except StopIteration:
@@ -303,8 +319,24 @@ class Game:
                     snake.move(self.ms_per_move)
 
                 # Check if snake hit something
-                for snake in self.snakes:
-                    self.check_snake_hits(snake)
+                for i, snake in enumerate(self.snakes):
+                    other_snakes = self.snakes[0:i] + \
+                                   self.snakes[i + 1:len(self.snakes)]
+                    self.check_snake_hits(snake, other_snakes)
+
+                # Exclude any dead snakes from game
+                before = len(self.snakes)
+                self.snakes = [s for s in self.snakes if s.is_alive()]
+                after = len(self.snakes)
+
+                # Game over if no more snakes
+                if len(self.snakes) == 0:
+                    self.game_over = True
+
+                # If any death (but not game over) play sound effect
+                if not self.game_over and after < before:
+                    self.sfx.game_over.play()
+                    # TODO: different sound effect, not game_over?
 
         # Remove bullets if out of screen
         bullets_to_remove = [b for b in self.fired_bullets
