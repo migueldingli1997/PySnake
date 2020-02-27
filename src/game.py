@@ -83,25 +83,20 @@ class Game:
     def no_of_poisons(self) -> float:
         return (self.level - 1) - self.minus_poisons
 
-    def get_score(self) -> Score:
-        snake = self.snakes[0]  # TODO: consider for each snake
-        return Score(
-            self.cfg.player_name, snake.max_length_reached,
-            self.level, datetime.now())
+    def get_scores(self) -> List[Score]:
+        timestamp = datetime.now()
+        return [Score(self.cfg.player_name, snake.max_length_reached,
+                      self.level, timestamp) for snake in self.snakes]
 
     def should_spawn_shield(self) -> bool:
-        snake = self.snakes[0]  # TODO: consider all snakes or none at all
         # Coin toss on even levels > 6 if shield not on
         return self.level > 0 and self.level % 2 == 0 \
-               and bool(random.getrandbits(1)) \
-               and not snake.is_shield_on
+               and bool(random.getrandbits(1))
 
     def should_spawn_ghost(self) -> bool:
-        snake = self.snakes[0]  # TODO: consider all snakes or none at all
         # Coin toss on odd levels > 10 if ghost not on
         return self.level > 10 and self.level % 2 == 1 \
-               and bool(random.getrandbits(1)) \
-               and not snake.is_ghost_on
+               and bool(random.getrandbits(1))
 
     def should_spawn_bomb(self) -> bool:
         # Every 20n'th level for n >= 1

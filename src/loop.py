@@ -81,6 +81,7 @@ class Loop:
                         return True
                     elif not score_saved and \
                             self.txt.save_score_rect.collidepoint(*event.pos):
-                        scores.add_score(game.get_score())
+                        for score in game.get_scores():
+                            scores.add_score(score)
                         scores.write()
                         score_saved = True
