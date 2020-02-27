@@ -1,16 +1,21 @@
 from typing import Optional, Iterator
 
+import names
+
 from helpers.util import Direction, Coords, CoordsList, Size2D, Util
 
 STARTING_LENGTH = 3  # Starting length
+RAND_NAME = "_rand_name_"
 
 
 class Snake:
 
-    def __init__(self, game_size_tiles: Size2D, util: Util):
+    def __init__(self, game_size_tiles: Size2D, util: Util,
+                 name: str = RAND_NAME):
         self.tiles_x = game_size_tiles[0]
         self.tiles_y = game_size_tiles[1]
         self.util = util
+        self.name = name if name != RAND_NAME else names.get_first_name()
 
         self.direction = Direction.RIGHT
         self.last_direction_moved = self.direction

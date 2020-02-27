@@ -39,18 +39,20 @@ class Game:
         self.base_speed = BASE_SPEED  # moves/sec at level 1 (modifiable)
         self.time_ms = 0  # milliseconds since last snake move
 
-        # Entities
-        self.snakes = [Snake(game_size_tiles, util),
-                       Snake(game_size_tiles, util),
-                       Snake(game_size_tiles, util),
-                       Snake(game_size_tiles, util),
-                       Snake(game_size_tiles, util)]
+        # Snakes
+        self.live_snakes = [Snake(game_size_tiles, util, cfg.player_name),
+                            Snake(game_size_tiles, util),
+                            Snake(game_size_tiles, util),
+                            Snake(game_size_tiles, util),
+                            Snake(game_size_tiles, util)]
+        self.all_snakes = self.live_snakes  # backup list of all snakes
         # TODO: configurable number of snakes
 
         # If multiple snakes, make ghosts so that they don't immediately collide
-        for s in self.snakes:
+        for s in self.live_snakes:
             s.set_ghost(GHOST_TIMER_MS)
 
+        # Enemies, apple, powerups, bullets
         self.enemies = []
         self.poisons = []
         self.apple = None
@@ -85,8 +87,8 @@ class Game:
 
     def get_scores(self) -> List[Score]:
         timestamp = datetime.now()
-        return [Score(self.cfg.player_name, snake.max_length_reached,
-                      self.level, timestamp) for snake in self.snakes]
+        return [Score(snake.name, snake.max_length_reached,
+                      self.level, timestamp) for snake in self.all_snakes]
 
     def should_spawn_shield(self) -> bool:
         # Coin toss on even levels > 6 if shield not on
@@ -107,7 +109,7 @@ class Game:
         return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):
-        snake = self.snakes[0]  # TODO: consider for each snake
+        snake = self.live_snakes[0]  # TODO: consider for each snake
         if key in self.cfg.ctrl_up:
             snake.set_direction(Direction.UP)
         elif key in self.cfg.ctrl_down:
@@ -142,7 +144,7 @@ class Game:
         taken = np.zeros(self.game_size_tiles, dtype=bool)
 
         # Objects that will not change position
-        for snake in self.snakes:
+        for snake in self.live_snakes:
             for s in snake:
                 taken[s[0]][s[1]] = True
         if not CLEAR_POWERUPS_IF_NOT_PICKED_UP:
@@ -184,7 +186,7 @@ class Game:
             self.pow_bullets = self.get_free_tile(taken)
 
         # Mark front of snake taken to avoid immediately hitting enemies/poison
-        for snake in self.snakes:
+        for snake in self.live_snakes:
             to_mark = snake.head
             for i in range(SAFE_ZONE_TILES):
                 to_mark = self.util.get_next_tile(to_mark, snake.direction)
@@ -310,22 +312,22 @@ class Game:
                 self.time_ms -= self.ms_per_move
 
                 # Move snake
-                for snake in self.snakes:
+                for snake in self.live_snakes:
                     snake.move(self.ms_per_move)
 
                 # Check if snake hit something
-                for i, snake in enumerate(self.snakes):
-                    other_snakes = self.snakes[0:i] + \
-                                   self.snakes[i + 1:len(self.snakes)]
+                for i, snake in enumerate(self.live_snakes):
+                    other_snakes = self.live_snakes[0:i] + \
+                                   self.live_snakes[i + 1:len(self.live_snakes)]
                     self.check_snake_hits(snake, other_snakes)
 
                 # Exclude any dead snakes from game
-                before = len(self.snakes)
-                self.snakes = [s for s in self.snakes if s.is_alive()]
-                after = len(self.snakes)
+                before = len(self.live_snakes)
+                self.live_snakes = [s for s in self.live_snakes if s.is_alive()]
+                after = len(self.live_snakes)
 
                 # Game over if no more snakes
-                if len(self.snakes) == 0:
+                if len(self.live_snakes) == 0:
                     self.game_over = True
 
                 # If any death (but not game over) play sound effect
@@ -344,5 +346,5 @@ class Game:
             b.move(dt)
 
         # Check if bullets hit something
-        for snake in self.snakes:
+        for snake in self.live_snakes:
             self.check_bullet_hits(snake)
