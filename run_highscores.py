@@ -1,6 +1,6 @@
 import sys
 
-from helpers.score import ScoresList
+from src.helpers.score import ScoresList
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

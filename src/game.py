@@ -4,12 +4,12 @@ from typing import List
 
 import numpy as np
 
-from helpers.config import Config
-from helpers.score import Score
-from helpers.sfx import SfxHolder
-from helpers.util import Size2D, Direction, Util, Coords
-from projectile import Bullet
-from snake import Snake
+from src.helpers.config import Config
+from src.helpers.score import Score
+from src.helpers.sfx import SfxHolder
+from src.helpers.util import Size2D, Direction, Util, Coords
+from src.projectile import Bullet
+from src.snake import Snake
 
 STARTING_LEVEL = 1  # starting level
 BASE_SPEED = 3  # moves/sec at level 1
@@ -40,13 +40,11 @@ class Game:
         self.time_ms = 0  # milliseconds since last snake move
 
         # Snakes
-        self.live_snakes = [Snake(game_size_tiles, util, cfg.player_name),
-                            Snake(game_size_tiles, util),
-                            Snake(game_size_tiles, util),
-                            Snake(game_size_tiles, util),
-                            Snake(game_size_tiles, util)]
+        self.live_snakes = []
+        for p in cfg.players:
+            self.live_snakes.append(
+                Snake(game_size_tiles, util, p))
         self.all_snakes = self.live_snakes  # backup list of all snakes
-        # TODO: configurable number of snakes
 
         # If multiple snakes, make ghosts so that they don't immediately collide
         for s in self.live_snakes:
@@ -87,7 +85,7 @@ class Game:
 
     def get_scores(self) -> List[Score]:
         timestamp = datetime.now()
-        return [Score(snake.name, snake.max_length_reached,
+        return [Score(snake.player.name, snake.max_length_reached,
                       self.level, timestamp) for snake in self.all_snakes]
 
     def should_spawn_shield(self) -> bool:
@@ -108,29 +106,30 @@ class Game:
         # Every 10n'th level for n >= 1
         return self.level > 0 and self.level % 10 == 0
 
-    def press_key(self, key: int):
-        snake = self.live_snakes[0]  # TODO: consider for each snake
-        if key in self.cfg.ctrl_up:
-            snake.set_direction(Direction.UP)
-        elif key in self.cfg.ctrl_down:
-            snake.set_direction(Direction.DOWN)
-        elif key in self.cfg.ctrl_left:
-            snake.set_direction(Direction.LEFT)
-        elif key in self.cfg.ctrl_right:
-            snake.set_direction(Direction.RIGHT)
-        elif key in self.cfg.ctrl_pause:
-            self.trigger_pause()
-        elif key in self.cfg.ctrl_boost:
-            self.base_speed *= BOOST_MULTIPLIER
-        elif key in self.cfg.ctrl_shoot and snake.has_bullets:
-            snake.use_bullet()
-            self.fired_bullets.append(
-                Bullet(self.util.get_xy_center(snake.head),
-                       snake.last_direction_moved, self.util))
+    def press_key(self, key: int):  # TODO: investigate how to optimise
+        for snake in self.live_snakes:
+            if key in snake.player.ctrl_up:
+                snake.set_direction(Direction.UP)
+            elif key in snake.player.ctrl_down:
+                snake.set_direction(Direction.DOWN)
+            elif key in snake.player.ctrl_left:
+                snake.set_direction(Direction.LEFT)
+            elif key in snake.player.ctrl_right:
+                snake.set_direction(Direction.RIGHT)
+            elif key in snake.player.ctrl_pause:
+                self.trigger_pause()
+            elif key in snake.player.ctrl_boost:
+                self.base_speed *= BOOST_MULTIPLIER  # TODO: one per snake
+            elif key in snake.player.ctrl_shoot and snake.has_bullets:
+                snake.use_bullet()
+                self.fired_bullets.append(
+                    Bullet(self.util.get_xy_center(snake.head),
+                           snake.last_direction_moved, self.util))
 
     def release_key(self, key: int):
-        if key in self.cfg.ctrl_boost:
-            self.base_speed /= BOOST_MULTIPLIER
+        for snake in self.live_snakes:
+            if key in snake.player.ctrl_boost:
+                self.base_speed /= BOOST_MULTIPLIER  # TODO: one per snake
 
     def trigger_pause(self):
         self.paused = not self.paused

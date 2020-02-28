@@ -5,7 +5,8 @@ The classic arcade game Snake reimagined in Python using [Pygame](https://www.py
 **Note**: requires Python 3 with Pipenv
 
 ```bash
-bash run_game.sh
+pipenv sync
+pipenv run python run_game.py
 ```
 
 ## Gameplay and Controls
@@ -38,26 +39,31 @@ Firing bullets at yourself has the same effect as a green skull, i.e. the snake'
 ### (Re)Configuration
 Configurations are saved in the `config.ini` file. A `config_default.ini` guaranteed to work is provided, which can be used to reacreate the `config.ini` file if it becomes unusable for any reason. Some scripts are provided to make reconfiguration of certain aspects of the game easier.
 
-#### Reconfigure Player Name
+#### Add New Player(s)
 ```bash
-bash run_reconfig_player.sh
+pipenv sync  # if you haven't already
+pipenv run python run_players_add.py
 ```
 
-This will simply ask for a new player name, which is used for the highscores list. The default player name is 'Unnamed Player'. This can also be changed manually from the config file `config.ini`.
+You will first be asked to insert controls for the player. Pay special attention to the console output (stdout) as it will guide you through the process. For each control, you may input any number of buttons by pressing them one by one and pressing ENTER at the end to submit the list. After all controls are set, the console will ask for a player name to be used for the snake status display during the game and for the highscores list. And that's it!
 
-#### Reconfigure Controls
+By default, the game has one player with its name set to 'Unnamed Player' and its controls set to the default controls (presented above).
+
+Values can also be changed manually from the config file `config.ini`. If something goes wrong with the reconfiguration, a `config_default.ini` file is included and can be used to replace a bad `config.ini`. 
+
+#### Delete Player(s)
 ```bash
-bash run_reconfig_controls.sh
+pipenv sync  # if you haven't already
+pipenv run python run_players_del.py
 ```
 
-Pay special attention to the console output (stdout) as it will guide you through the reconfiguration process. For each control, you may either keep the current button/s by pressing ESCAPE, or input a new list with at least one button by pressing the button/s one by one and pressing ENTER at the end to submit the list.
-
-If something goes wrong with the reconfiguration, a `config_default.ini` file is included and can be used to replace a bad `config.ini`. 
+This will ask for player names that you wish to delete. A blank input makes the script save and quit.
 
 ### Highscores
 The top 10 saved scores are stored in a highscores list. This can be printed by running:
 ```bash
-bash run_highscores.sh
+pipenv sync  # if you haven't already
+pipenv run python run_players_del.py
 ```
 
 Scores can be saved from the game-over screen by pressing a "Save Score" button.

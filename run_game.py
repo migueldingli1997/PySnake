@@ -1,17 +1,18 @@
 import pygame as pg
 
-from drawer import Drawer
-from game import Game
-from helpers.config import Config
-from helpers.img import ImgHolder
-from helpers.score import ScoresList
-from helpers.sfx import SfxHolder
-from helpers.text import Text
-from helpers.util import Util
-from loop import Loop
+from src.drawer import Drawer
+from src.game import Game
+from src.helpers.config import Config
+from src.helpers.img import ImgHolder
+from src.helpers.score import ScoresList
+from src.helpers.sfx import SfxHolder
+from src.helpers.text import Text
+from src.helpers.util import Util
+from src.loop import Loop
 
-TILES_X = 30
-TILES_Y = 30
+TILES_X = 30  # number of tiles horizontally (should not be changed)
+TILES_Y = 30  # number of tiles vertically (should not be changed)
+WIDTH_STRETCH = 1.4  # for HUD area
 
 GAME_TITLE = 'PySnake'
 GAME_ICON = 'img/icon.png'
@@ -42,9 +43,10 @@ if __name__ == '__main__':
     pg.display.set_caption(GAME_TITLE)
     pg.display.set_icon(IMG.game_icon)
 
-    # Create screen
+    # Create screen (width stretched for HUD area)
     screen: pg.Surface = pg.display.set_mode(
-        (CFG.width_px, CFG.height_px), pg.FULLSCREEN if CFG.full_screen else 0)
+        (int(CFG.width_px * WIDTH_STRETCH), CFG.height_px),
+        pg.FULLSCREEN if CFG.full_screen else 0)
     IMG.post_init()  # final steps now that video mode has been set
 
     running = True

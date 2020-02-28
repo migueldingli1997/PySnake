@@ -1,13 +1,13 @@
 import pygame as pg
 from pygame.time import Clock
 
-from drawer import Drawer
-from game import Game
-from helpers.config import Config
-from helpers.score import ScoresList
-from helpers.sfx import SfxHolder
-from helpers.text import Text
-from helpers.util import Util, user_quit
+from src.drawer import Drawer
+from src.game import Game
+from src.helpers.config import Config
+from src.helpers.score import ScoresList
+from src.helpers.sfx import SfxHolder
+from src.helpers.text import Text
+from src.helpers.util import Util, user_quit
 
 
 class Loop:
