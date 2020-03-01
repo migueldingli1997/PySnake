@@ -310,6 +310,7 @@ class Game:
             s.move_time(dt)
 
         # Move snake if enough time elapsed for at least one move
+        # TODO: one per snake
         if self.time_ms >= self.ms_per_move:
             # FPS-independent moves (loop just in case game needs to catch up)
             while self.time_ms > self.ms_per_move:
