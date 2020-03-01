@@ -10,7 +10,7 @@ RAND_NAME = "_rand_name_"
 class Snake:
 
     def __init__(self, game_size_tiles: Size2D, util: Util,
-                 player: Player):
+                 player: Player, initial_moves_per_ms: float):
         self.tiles_x = game_size_tiles[0]
         self.tiles_y = game_size_tiles[1]
         self.util = util
@@ -18,6 +18,10 @@ class Snake:
 
         self.direction = Direction.RIGHT
         self.last_direction_moved = self.direction
+        self.base_moves_per_ms = initial_moves_per_ms
+        self.boost_moves_per_ms = 0
+        self.ms_idle = 0.0
+
         self.is_shield_on = False
         self.ghost_ms = 0.0
         self.bullets = 0
@@ -53,6 +57,10 @@ class Snake:
             return []
 
     @property
+    def ms_per_move(self) -> float:
+        return 1 / (self.base_moves_per_ms + self.boost_moves_per_ms)
+
+    @property
     def is_ghost_on(self) -> bool:
         return self.ghost_ms > 0
 
@@ -75,6 +83,12 @@ class Snake:
             self.direction = new_dir
             return True
 
+    def set_base_moves_per_ms(self, new_base_moves_per_ms: float) -> None:
+        self.base_moves_per_ms = new_base_moves_per_ms
+
+    def set_boost_moves_per_ms(self, new_boost_moves_per_ms: float) -> None:
+        self.boost_moves_per_ms = new_boost_moves_per_ms
+
     def shrink(self, count: int) -> None:
         self.coords = self.coords[:len(self.coords) - count]
 
@@ -96,6 +110,9 @@ class Snake:
         self.bullets -= 1
 
     def move(self):
+        # Consume idle time
+        self.ms_idle -= self.ms_per_move
+
         # New head
         newHead = self.util.get_next_tile(self.head, self.direction)
 
@@ -106,9 +123,15 @@ class Snake:
         self.last_direction_moved = self.direction
 
     def move_time(self, dt: float):
+        # Update time
+        self.ms_idle += dt
+
         # Deduct time from ghost powerup
         if self.is_ghost_on:
             self.ghost_ms = max(0, self.ghost_ms - dt)
+
+    def can_move(self) -> bool:
+        return self.ms_idle >= self.ms_per_move
 
     def is_alive(self) -> bool:
         return self.alive
