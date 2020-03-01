@@ -124,7 +124,7 @@ class Game:
                 s.use_bullet()
                 self.fired_bullets.append(
                     Bullet(self.util.get_xy_center(s.head),
-                           s.last_direction_moved, self.util, s))
+                           s.last_direction_moved, self.util))
 
     def release_key(self, key: int):
         for s in self.live_snakes:
@@ -288,12 +288,11 @@ class Game:
                 self.minus_poisons += 1
                 self.sfx.bullet_hit_skull.play()
             else:
-                # For snake hit to count, (i) snake has to not be a ghost,
-                # (ii) bullet has to have hit the snake, and (iii) it is not
-                # the case that the bullet hit the owner's head
+                # For bullet hit to count, it has to have hit the snake (excl.
+                # its head) and the snake has to not be a ghost
                 for s in self.live_snakes:
-                    if not s.is_ghost_on and bullet_tile in s.coords and \
-                            not (bullet_tile == s.head and b.shooter == s):
+                    if not s.is_ghost_on and bullet_tile != s.head and \
+                            bullet_tile in s.coords:
                         hits.append(b)
                         if s.is_shield_on:
                             s.set_shield(False)
