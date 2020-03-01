@@ -1,4 +1,5 @@
 from src.helpers.util import Coords, Direction, get_next_xy, Util
+from src.snake import Snake
 
 BULLET_TILES_PER_SECOND = 30
 
@@ -29,5 +30,7 @@ class Projectile:
 
 
 class Bullet(Projectile):
-    def __init__(self, coords: Coords, direction: Direction, util: Util):
+    def __init__(self, coords: Coords, direction: Direction, util: Util,
+                 shooter: Snake):
         super().__init__(coords, direction, BULLET_TILES_PER_SECOND, util)
+        self.shooter = shooter

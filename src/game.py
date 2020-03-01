@@ -124,7 +124,7 @@ class Game:
                 s.use_bullet()
                 self.fired_bullets.append(
                     Bullet(self.util.get_xy_center(s.head),
-                           s.last_direction_moved, self.util))
+                           s.last_direction_moved, self.util, s))
 
     def release_key(self, key: int):
         for s in self.live_snakes:
@@ -272,7 +272,7 @@ class Game:
             except StopIteration:
                 pass
 
-    def check_bullet_hits(self, snake: Snake):
+    def check_bullet_hits(self):
         # Check if bullets hit an enemy, poison, or snake
         hits = []
         for b in self.fired_bullets:
@@ -287,15 +287,20 @@ class Game:
                 self.poisons.remove(bullet_tile)
                 self.minus_poisons += 1
                 self.sfx.bullet_hit_skull.play()
-            elif bullet_tile in snake.coords \
-                    and bullet_tile != snake.head:
-                hits.append(b)
-                if snake.is_shield_on:
-                    snake.set_shield(False)
-                    self.sfx.shield_off.play()
-                else:
-                    snake.shrink(1)
-                    self.sfx.bullet_hit_snake.play()
+            else:
+                # For snake hit to count, (i) snake has to not be a ghost,
+                # (ii) bullet has to have hit the snake, and (iii) it is not
+                # the case that the bullet hit the owner's head
+                for s in self.live_snakes:
+                    if not s.is_ghost_on and bullet_tile in s.coords and \
+                            not (bullet_tile == s.head and b.shooter == s):
+                        hits.append(b)
+                        if s.is_shield_on:
+                            s.set_shield(False)
+                            self.sfx.shield_off.play()
+                        else:
+                            s.shrink(1)
+                            self.sfx.bullet_hit_snake.play()
 
         # Hits means bullet can be removed
         for h in hits:
@@ -337,8 +342,7 @@ class Game:
 
         # Move bullets
         for b in self.fired_bullets:
-            b.move()
+            b.move(dt)
 
         # Check if bullets hit something
-        for snake in self.live_snakes:
-            self.check_bullet_hits(snake)
+        self.check_bullet_hits()
