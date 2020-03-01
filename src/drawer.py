@@ -1,13 +1,14 @@
-from game import Game
-from helpers.anim import SpriteSheetAnimation
-from helpers.colours import *
-from helpers.config import Config
-from helpers.img import ImgHolder
-from helpers.text import Text
-from helpers.util import rotate_image, Util
+from src.game import Game
+from src.helpers.anim import SpriteSheetAnimation
+from src.helpers.colours import *
+from src.helpers.config import Config
+from src.helpers.img import ImgHolder
+from src.helpers.text import Text
+from src.helpers.util import rotate_image, Util
+from src.snake import Snake
 
 
-class Drawer():
+class Drawer:
     def __init__(self, util: Util, img: ImgHolder, txt: Text, cfg: Config):
         self.util = util
         self.img = img
@@ -20,25 +21,26 @@ class Drawer():
 
     def draw_game(self, screen, game: Game, dt: int):
         def draw_background():
+            screen.fill(BLACK)
             screen.blit(self.img.background, (0, 0))
 
-        def draw_snake_parts():
+        def draw_snake_parts(snake: Snake):
             # Draw snake parts (tail and head)
             snake_img = self.img.snake_ghost \
-                if game.snake.is_ghost_on \
+                if snake.is_ghost_on \
                 else self.img.snake_normal
-            for s in game.snake:
+            for s in snake:
                 screen.blit(snake_img, self.util.get_xy(s))
-            if game.snake.head is not None:
+            if snake.head is not None:
                 screen.blit(
                     rotate_image(self.img.snake_eyes,
-                                 game.snake.last_direction_moved),
-                    self.util.get_xy(game.snake.head))
+                                 snake.last_direction_moved),
+                    self.util.get_xy(snake.head))
 
-        def draw_shielded_snake():
+        def draw_shielded_snake(snake: Snake):
             # Draw shield on top of snake if has shield on
-            if game.snake.is_shield_on:
-                for s in game.snake:
+            if snake.is_shield_on:
+                for s in snake:
                     screen.blit(self.img.snake_shielded, self.util.get_xy(s))
 
         def draw_apple():
@@ -70,59 +72,70 @@ class Drawer():
             for b in game.fired_bullets:
                 pg.draw.circle(screen, YELLOW, b.coords, 4)
 
-        def draw_hud():
-            y_offset = 0
-
+        def draw_hud(snake: Snake, y_offset: int = 0) -> int:
             # Draw current level
-            level_text = 'Current level: {}'.format(game.level)
+            level_text = '({}) Current level: {}'.format(
+                snake.player.name, game.level)
             level_surface = self.hud_font.render(level_text, True, WHITE)
-            screen.blit(level_surface, (0, y_offset))
+            screen.blit(level_surface, (self.cfg.width_px, y_offset))
             y_offset += level_surface.get_height()
 
             # Draw current length
-            curlen_text = 'Current length: {}'.format(len(game.snake))
+            curlen_text = '({}) Current length: {}'.format(
+                snake.player.name, len(snake))
             curlen_surface = self.hud_font.render(curlen_text, True, WHITE)
-            screen.blit(curlen_surface, (0, y_offset))
+            screen.blit(curlen_surface, (self.cfg.width_px, y_offset))
             y_offset += curlen_surface.get_height()
 
             # Draw max length
-            maxlen_text = 'Max length: {}'.format(game.snake.max_length_reached)
+            maxlen_text = '({}) Max length: {}'.format(
+                snake.player.name, snake.max_length_reached)
             maxlen_surface = self.hud_font.render(maxlen_text, True, WHITE)
-            screen.blit(maxlen_surface, (0, y_offset))
+            screen.blit(maxlen_surface, (self.cfg.width_px, y_offset))
             y_offset += maxlen_surface.get_height()
 
             # Draw bullets indicator
-            if game.snake.bullets > 0:
-                bullets_text = 'Bullets: {}'.format(game.snake.bullets)
+            if snake.bullets > 0:
+                bullets_text = '({}) Bullets: {}'.format(
+                    snake.player.name, snake.bullets)
                 bullets_surface = self.hud_font.render(bullets_text, True,
                                                        WHITE)
-                screen.blit(bullets_surface, (0, y_offset))
+                screen.blit(bullets_surface, (self.cfg.width_px, y_offset))
                 y_offset += bullets_surface.get_height()
 
             # Draw ghost indicator
-            if game.snake.ghost_ms > 0:
-                ghost_seconds = game.snake.ghost_ms / 1000
-                ghost_text = 'Ghost: {:.1f}'.format(ghost_seconds)
+            if snake.ghost_ms > 0:
+                ghost_seconds = snake.ghost_ms / 1000
+                ghost_text = '({}) Ghost: {:.1f}'.format(
+                    snake.player.name, ghost_seconds)
                 ghost_surface = self.hud_font.render(ghost_text, True, WHITE)
-                screen.blit(ghost_surface, (0, y_offset))
+                screen.blit(ghost_surface, (self.cfg.width_px, y_offset))
                 y_offset += ghost_surface.get_height()
 
             # Draw shield indicator
-            if game.snake.is_shield_on:
-                shield_text = 'Shield: ON'
+            if snake.is_shield_on:
+                shield_text = '({}) Shield: ON'.format(snake.player.name)
                 shield_surface = self.hud_font.render(shield_text, True, WHITE)
-                screen.blit(shield_surface, (0, y_offset))
+                screen.blit(shield_surface, (self.cfg.width_px, y_offset))
                 y_offset += shield_surface.get_height()
 
+            return y_offset
+
         draw_background()
-        draw_snake_parts()
-        draw_shielded_snake()
+
+        for s in game.live_snakes:
+            draw_snake_parts(s)
+            draw_shielded_snake(s)
+
         draw_apple()
         draw_powerups()
         draw_enemies()
         draw_poisons()
         draw_bullets()
-        draw_hud()
+
+        hud_y_offset = 0
+        for s in game.live_snakes:
+            hud_y_offset = draw_hud(s, hud_y_offset)
 
     def draw_game_over_overlay(self, screen, alpha: int, score_saved: bool):
         # Game over image
@@ -144,3 +157,7 @@ class Drawer():
 
     def draw_paused_overlay(self, screen):
         screen.blit(self.txt.paused, self.txt.paused_rect)
+
+    def draw_fps(self, screen, fps: float):
+        fps_surface = self.hud_font.render(str(int(fps)), True, YELLOW)
+        screen.blit(fps_surface, (0, 0))

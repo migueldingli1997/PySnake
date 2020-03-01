@@ -1,6 +1,6 @@
-from helpers.colours import *
-from helpers.config import Config
-from helpers.util import Util
+from src.helpers.colours import *
+from src.helpers.config import Config
+from src.helpers.util import Util
 
 
 class Text:

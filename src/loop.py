@@ -1,13 +1,13 @@
 import pygame as pg
 from pygame.time import Clock
 
-from drawer import Drawer
-from game import Game
-from helpers.config import Config
-from helpers.score import ScoresList
-from helpers.sfx import SfxHolder
-from helpers.text import Text
-from helpers.util import Util, user_quit
+from src.drawer import Drawer
+from src.game import Game
+from src.helpers.config import Config
+from src.helpers.score import ScoresList
+from src.helpers.sfx import SfxHolder
+from src.helpers.text import Text
+from src.helpers.util import Util, user_quit
 
 
 class Loop:
@@ -39,13 +39,15 @@ class Loop:
                     if event.key in self.cfg.all_keys:
                         game.release_key(event.key)
 
+            # Move and draw game (with possible paused screen and fps)
             if not game.paused:
-                # Move and draw game
                 game.move(dt)
-                if not game.game_over:
-                    self.drawer.draw_game(screen, game, dt)
-            else:
+            if not game.game_over:
+                self.drawer.draw_game(screen, game, dt)
+            if game.paused:
                 self.drawer.draw_paused_overlay(screen)
+            if self.cfg.draw_fps:
+                self.drawer.draw_fps(screen, self.clock.get_fps())
 
             # Update display
             pg.display.update()
@@ -81,6 +83,7 @@ class Loop:
                         return True
                     elif not score_saved and \
                             self.txt.save_score_rect.collidepoint(*event.pos):
-                        scores.add_score(game.get_score())
+                        for score in game.get_scores():
+                            scores.add_score(score)
                         scores.write()
                         score_saved = True

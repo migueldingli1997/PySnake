@@ -1,4 +1,4 @@
-from helpers.util import Util
+from src.helpers.util import Util
 
 
 class SfxHolder:
@@ -7,6 +7,8 @@ class SfxHolder:
         self.poison = util.load_sfx('poison.wav')
         self.powerup = util.load_sfx('powerup.wav')
         self.shield_off = util.load_sfx('shield_off.wav')
+        self.bullet_fire = util.load_sfx('bullet_fire.wav')
         self.bullet_hit_skull = util.load_sfx('bullet_hit_skull.wav')
         self.bullet_hit_snake = util.load_sfx('bullet_hit_snake.wav')
         self.game_over = util.load_sfx('game_over.wav')
+        self.snake_death = util.load_sfx('snake_death.wav')
