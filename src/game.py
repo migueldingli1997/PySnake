@@ -122,6 +122,7 @@ class Game:
                 s.set_boost_moves_per_ms(SPEED_BOOST / 1000)
             elif key in s.player.ctrl_shoot and s.has_bullets:
                 s.use_bullet()
+                self.sfx.bullet_fire.play()
                 self.fired_bullets.append(
                     Bullet(self.util.get_xy_center(s.head),
                            s.last_direction_moved, self.util))
