@@ -39,13 +39,15 @@ class Loop:
                     if event.key in self.cfg.all_keys:
                         game.release_key(event.key)
 
+            # Move and draw game (with possible paused screen and fps)
             if not game.paused:
-                # Move and draw game
                 game.move(dt)
-                if not game.game_over:
-                    self.drawer.draw_game(screen, game, dt)
-            else:
+            if not game.game_over:
+                self.drawer.draw_game(screen, game, dt)
+            if game.paused:
                 self.drawer.draw_paused_overlay(screen)
+            if self.cfg.draw_fps:
+                self.drawer.draw_fps(screen, self.clock.get_fps())
 
             # Update display
             pg.display.update()

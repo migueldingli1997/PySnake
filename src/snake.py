@@ -95,7 +95,7 @@ class Snake:
     def use_bullet(self) -> None:
         self.bullets -= 1
 
-    def move(self, dt: float):
+    def move(self):
         # New head
         newHead = self.util.get_next_tile(self.head, self.direction)
 
@@ -105,6 +105,7 @@ class Snake:
         # Last direction moved
         self.last_direction_moved = self.direction
 
+    def move_time(self, dt: float):
         # Deduct time from ghost powerup
         if self.is_ghost_on:
             self.ghost_ms = max(0, self.ghost_ms - dt)

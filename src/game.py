@@ -35,8 +35,9 @@ class Game:
         self.level = STARTING_LEVEL
         self.paused = False
 
-        # Timing
+        # Speed and timing
         self.base_speed = BASE_SPEED  # moves/sec at level 1 (modifiable)
+        self.ms_per_move = self.get_updated_ms_per_move()
         self.time_ms = 0  # milliseconds since last snake move
 
         # Snakes
@@ -67,13 +68,9 @@ class Game:
         # Generate first apple
         self.new_objects()
 
-    @property
-    def moves_per_sec(self) -> float:
-        return self.base_speed + (ACCELERATION * (self.level - 1))
-
-    @property
-    def ms_per_move(self) -> float:
-        return 1000 / self.moves_per_sec
+    def get_updated_ms_per_move(self) -> float:
+        moves_per_sec = self.base_speed + (ACCELERATION * (self.level - 1))
+        return 1000 / moves_per_sec
 
     @property
     def no_of_enemies(self) -> float:
@@ -107,29 +104,34 @@ class Game:
         return self.level > 0 and self.level % 10 == 0
 
     def press_key(self, key: int):  # TODO: investigate how to optimise
-        for snake in self.live_snakes:
-            if key in snake.player.ctrl_up:
-                snake.set_direction(Direction.UP)
-            elif key in snake.player.ctrl_down:
-                snake.set_direction(Direction.DOWN)
-            elif key in snake.player.ctrl_left:
-                snake.set_direction(Direction.LEFT)
-            elif key in snake.player.ctrl_right:
-                snake.set_direction(Direction.RIGHT)
-            elif key in snake.player.ctrl_pause:
+        for s in self.live_snakes:
+            if key not in s.player.all_keys:
+                continue
+            if key in s.player.ctrl_up:
+                s.set_direction(Direction.UP)
+            elif key in s.player.ctrl_down:
+                s.set_direction(Direction.DOWN)
+            elif key in s.player.ctrl_left:
+                s.set_direction(Direction.LEFT)
+            elif key in s.player.ctrl_right:
+                s.set_direction(Direction.RIGHT)
+            elif key in s.player.ctrl_pause:
                 self.trigger_pause()
-            elif key in snake.player.ctrl_boost:
+            elif key in s.player.ctrl_boost and self.base_speed == BASE_SPEED:
                 self.base_speed *= BOOST_MULTIPLIER  # TODO: one per snake
-            elif key in snake.player.ctrl_shoot and snake.has_bullets:
-                snake.use_bullet()
+                self.ms_per_move = self.get_updated_ms_per_move()
+            elif key in s.player.ctrl_shoot and s.has_bullets:
+                s.use_bullet()
                 self.fired_bullets.append(
-                    Bullet(self.util.get_xy_center(snake.head),
-                           snake.last_direction_moved, self.util))
+                    Bullet(self.util.get_xy_center(s.head),
+                           s.last_direction_moved, self.util))
 
     def release_key(self, key: int):
-        for snake in self.live_snakes:
-            if key in snake.player.ctrl_boost:
+        for s in self.live_snakes:
+            if key in s.player.ctrl_boost and self.base_speed != BASE_SPEED:
                 self.base_speed /= BOOST_MULTIPLIER  # TODO: one per snake
+                self.ms_per_move = self.get_updated_ms_per_move()
+                break
 
     def trigger_pause(self):
         self.paused = not self.paused
@@ -303,6 +305,10 @@ class Game:
     def move(self, dt: int):
         self.time_ms += dt
 
+        # Progress snakes' time
+        for s in self.live_snakes:
+            s.move_time(dt)
+
         # Move snake if enough time elapsed for at least one move
         if self.time_ms >= self.ms_per_move:
             # FPS-independent moves (loop just in case game needs to catch up)
@@ -312,7 +318,7 @@ class Game:
 
                 # Move snake
                 for snake in self.live_snakes:
-                    snake.move(self.ms_per_move)
+                    snake.move()
 
                 # Check if snake hit something
                 for i, snake in enumerate(self.live_snakes):
@@ -325,14 +331,11 @@ class Game:
                 self.live_snakes = [s for s in self.live_snakes if s.is_alive()]
                 after = len(self.live_snakes)
 
-                # Game over if no more snakes
+                # Game over if no more snakes; sound effect if snake died
                 if len(self.live_snakes) == 0:
                     self.game_over = True
-
-                # If any death (but not game over) play sound effect
-                if not self.game_over and after < before:
-                    self.sfx.game_over.play()
-                    # TODO: different sound effect, not game_over?
+                elif after < before:
+                    self.sfx.snake_death.play()
 
         # Remove bullets if out of screen
         bullets_to_remove = [b for b in self.fired_bullets
@@ -342,7 +345,7 @@ class Game:
 
         # Move bullets
         for b in self.fired_bullets:
-            b.move(dt)
+            b.move()
 
         # Check if bullets hit something
         for snake in self.live_snakes:

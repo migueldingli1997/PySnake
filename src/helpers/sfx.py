@@ -10,3 +10,5 @@ class SfxHolder:
         self.bullet_hit_skull = util.load_sfx('bullet_hit_skull.wav')
         self.bullet_hit_snake = util.load_sfx('bullet_hit_snake.wav')
         self.game_over = util.load_sfx('game_over.wav')
+        self.snake_death = util.load_sfx('game_over.wav')
+        # TODO: different sound effect for snake_death

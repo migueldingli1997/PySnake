@@ -157,3 +157,7 @@ class Drawer:
 
     def draw_paused_overlay(self, screen):
         screen.blit(self.txt.paused, self.txt.paused_rect)
+
+    def draw_fps(self, screen, fps: float):
+        fps_surface = self.hud_font.render(str(int(fps)), True, YELLOW)
+        screen.blit(fps_surface, (0, 0))

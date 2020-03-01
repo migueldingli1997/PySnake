@@ -1,14 +1,14 @@
 from configparser import ConfigParser
-from typing import List
+from typing import Set
 
 VALID_WINDOW_SIZES = [1080, 900, 750, 600, 300]
+Keys = Set[int]
 
 
 class Player:
-    def __init__(self, name: str, ctrl_up: List[int],
-                 ctrl_down: List[int], ctrl_left: List[int],
-                 ctrl_right: List[int], ctrl_pause: List[int],
-                 ctrl_boost: List[int], ctrl_shoot: List[int]):
+    def __init__(self, name: str, ctrl_up: Keys, ctrl_down: Keys,
+                 ctrl_left: Keys, ctrl_right: Keys, ctrl_pause: Keys,
+                 ctrl_boost: Keys, ctrl_shoot: Keys):
         self.name = name
 
         self.ctrl_up = ctrl_up
@@ -19,9 +19,9 @@ class Player:
         self.ctrl_boost = ctrl_boost
         self.ctrl_shoot = ctrl_shoot
 
-        self.all_keys = \
-            self.ctrl_up + self.ctrl_down + self.ctrl_left + self.ctrl_right + \
-            self.ctrl_pause + self.ctrl_boost + self.ctrl_shoot
+        all_sets = [ctrl_up, ctrl_down, ctrl_left, ctrl_right,
+                    ctrl_pause, ctrl_boost, ctrl_shoot]
+        self.all_keys = set().union(*all_sets)
 
 
 class Config:
@@ -30,11 +30,11 @@ class Config:
         self.cp = None
 
     @classmethod
-    def parse_keys(cls, keys: str) -> List[int]:
-        return [int(key) for key in keys.split(',')]
+    def parse_keys(cls, keys: str) -> Keys:
+        return {int(key) for key in keys.split(',')}
 
     @classmethod
-    def keys_to_str(cls, keys: List[int]) -> str:
+    def keys_to_str(cls, keys: Keys) -> str:
         return ','.join([str(key) for key in keys])
 
     def read(self):
@@ -48,6 +48,7 @@ class Config:
         self.window_size = self.height_px = self.width_px = \
             int(video['window_size'])
         self.font = video['font']
+        self.draw_fps = video['draw_fps'].lower() in ['true', 'yes']
 
         if self.window_size not in VALID_WINDOW_SIZES:
             raise Exception('Invalid window size; Valid sizes: {}'
@@ -69,9 +70,9 @@ class Config:
                 player_name, ctrl_up, ctrl_down, ctrl_left,
                 ctrl_right, ctrl_pause, ctrl_boost, ctrl_shoot))
 
-        self.all_keys = []
+        self.all_keys = set()
         for p in self.players:
-            self.all_keys = self.all_keys + p.all_keys
+            self.all_keys = self.all_keys.union(p.all_keys)
 
         if len(self.players) == 0:
             raise Exception('Invalid config: zero players')
@@ -92,6 +93,7 @@ class Config:
         self.cp[section]['frames_per_second'] = str(self.frames_per_second)
         self.cp[section]['window_size'] = str(self.window_size)
         self.cp[section]['font'] = self.font
+        self.cp[section]['draw_fps'] = str(self.draw_fps)
 
         if self.window_size not in VALID_WINDOW_SIZES:
             raise Exception('Invalid window size; Valid sizes: {}'
