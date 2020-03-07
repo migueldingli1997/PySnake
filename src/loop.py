@@ -3,11 +3,11 @@ from pygame.time import Clock
 
 from src.drawer import Drawer
 from src.game import Game
-from src.helpers.config import Config
-from src.helpers.score import ScoresList
-from src.helpers.sfx import SfxHolder
-from src.helpers.text import Text
-from src.helpers.util import Util, user_quit
+from src.utils.config import Config
+from src.utils.score import ScoresList
+from src.utils.sfx import SfxHolder
+from src.utils.text import Text
+from src.utils.util import Util, user_quit
 
 
 class Loop:

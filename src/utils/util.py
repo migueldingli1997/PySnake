@@ -6,7 +6,7 @@ import pygame as pg
 from pygame.mixer import Sound
 from pygame.surface import Surface
 
-from src.helpers.direction import Direction, direction_to_angle
+from src.utils.direction import Direction, direction_to_angle
 
 Size2D = Tuple[int, int]
 Coords = Tuple[int, int]

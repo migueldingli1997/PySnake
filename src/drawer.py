@@ -1,10 +1,10 @@
 from src.game import Game
-from src.helpers.anim import SpriteSheetAnimation
-from src.helpers.colours import *
-from src.helpers.config import Config
-from src.helpers.img import ImgHolder
-from src.helpers.text import Text
-from src.helpers.util import rotate_image, Util
+from src.utils.anim import SpriteSheetAnimation
+from src.utils.colours import *
+from src.utils.config import Config
+from src.utils.img import ImgHolder
+from src.utils.text import Text
+from src.utils.util import rotate_image, Util
 from src.snake import Snake
 
 
