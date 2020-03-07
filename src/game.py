@@ -4,10 +4,10 @@ from typing import List
 
 import numpy as np
 
-from src.helpers.config import Config
-from src.helpers.score import Score
-from src.helpers.sfx import SfxHolder
-from src.helpers.util import Size2D, Direction, Util, Coords
+from src.utils.config import Config
+from src.utils.score import Score
+from src.utils.sfx import SfxHolder
+from src.utils.util import Size2D, Direction, Util, Coords
 from src.projectile import Bullet
 from src.snake import Snake
 

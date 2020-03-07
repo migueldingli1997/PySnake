@@ -1,4 +1,4 @@
-from src.helpers.util import Coords, Direction, get_next_xy, Util
+from src.utils.util import Coords, Direction, get_next_xy, Util
 
 BULLET_TILES_PER_SECOND = 30
 

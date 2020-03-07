@@ -2,12 +2,12 @@ import pygame as pg
 
 from src.drawer import Drawer
 from src.game import Game
-from src.helpers.config import Config
-from src.helpers.img import ImgHolder
-from src.helpers.score import ScoresList
-from src.helpers.sfx import SfxHolder
-from src.helpers.text import Text
-from src.helpers.util import Util
+from src.utils.config import Config
+from src.utils.img import ImgHolder
+from src.utils.score import ScoresList
+from src.utils.sfx import SfxHolder
+from src.utils.text import Text
+from src.utils.util import Util
 from src.loop import Loop
 
 TILES_X = 30  # number of tiles horizontally (should not be changed)

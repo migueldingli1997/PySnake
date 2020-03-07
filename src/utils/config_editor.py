@@ -3,7 +3,7 @@ import sys
 import names
 import pygame as pg
 
-from src.helpers.config import Config, Player
+from src.utils.config import Config, Player
 
 
 def add_players():

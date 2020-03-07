@@ -1,4 +1,4 @@
-from src.helpers.util import Util
+from src.utils.util import Util
 
 
 class SfxHolder:

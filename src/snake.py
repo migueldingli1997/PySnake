@@ -1,7 +1,7 @@
 from typing import Optional, Iterator
 
-from src.helpers.config import Player
-from src.helpers.util import Direction, Coords, CoordsList, Size2D, Util
+from src.utils.config import Player
+from src.utils.util import Direction, Coords, CoordsList, Size2D, Util
 
 STARTING_LENGTH = 3  # Starting length
 RAND_NAME = "_rand_name_"
