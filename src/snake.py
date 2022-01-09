@@ -9,10 +9,7 @@ RAND_NAME = "_rand_name_"
 
 class Snake:
 
-    def __init__(self, game_size_tiles: Size2D, util: Util,
-                 player: Player, initial_moves_per_ms: float):
-        self.tiles_x = game_size_tiles[0]
-        self.tiles_y = game_size_tiles[1]
+    def __init__(self, util: Util, player: Player, initial_moves_per_ms: float):
         self.util = util
         self.player = player
 

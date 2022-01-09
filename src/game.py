@@ -39,8 +39,7 @@ class Game:
         initial_speed = self.get_moves_per_ms_by_level()
         self.live_snakes = []
         for p in cfg.players:
-            self.live_snakes.append(
-                Snake(game_size_tiles, util, p, initial_speed))
+            self.live_snakes.append(Snake(util, p, initial_speed))
         self.all_snakes = self.live_snakes  # backup list of all snakes
 
         # If multiple snakes, make ghosts so that they don't immediately collide
