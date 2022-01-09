@@ -3,12 +3,9 @@ import sys
 from src.utils.score import ScoresList
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Incorrect number of arguments')
-        sys.exit(-1)
-    else:
-        scores = ScoresList(sys.argv[1])
-        scores.read()
+    highscores_file = sys.argv[1] if len(sys.argv) > 1 else "highscores"
+    scores = ScoresList(highscores_file)
+    scores.read()
 
     if len(scores.scores_list) == 0:
         print('Highscores list is empty.')
